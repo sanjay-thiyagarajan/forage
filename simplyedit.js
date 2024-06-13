@@ -526,7 +526,7 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
             curValue.latitude +
             "_N_" +
             curValue.longitude +
-            '_E" target="_blank">' +
+            '_E" class="external" target="_blank">' +
             str +
             "</a>";
         } else if (curValue.text) {
@@ -542,6 +542,9 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
             wbrepo.url + wbrepo.articlePath.replace("$1", "File:" + curValue);
           str =
             '<a href="' + entityURL + '" target="_blank">' + curValue + "</a>";
+        } else if (statement.mainsnak.datatype == "url") {
+          str =
+            '<a href="' + curValue + '" class="external" target="_blank">' + curValue + "</a>";
         } else {
           // string, external ID etc. - or just a malformed value?
           str = curValue;
