@@ -392,11 +392,11 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
       }
 
       function deleteValue(idx, propID) {
-        let guid = this.statementsMap[propID][idx].id;
+        let guid = this.newStatementsMap[propID][idx].id;
         if (guid !== undefined) {
           claimGUIDsToRemove.push(guid);
         }
-        this.statementsMap[propID].splice(idx, 1);
+        this.newStatementsMap[propID].splice(idx, 1);
       }
 
       /**
@@ -673,6 +673,7 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
                     v-model="statement.mainsnak.datavalue.value.time"
                     input-type="datetime-local"
                   ></cdx-text-input>
+                  <cdx-button v-if="!(statement.references || statement.qualifiers) && (statement.mainsnak.snaktype !== 'novalue')" action="destructive" weight="quiet" @click="deleteValue(idx, propID)">X</cdx-button>
                 </cdx-field>
                 <span :style="valueTagStyle" v-for="(statement, idx) in statementsMap[propID]" :key="idx" v-html="parseValue(statement)"></span>
               </cdx-field>
@@ -689,6 +690,7 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
                       v-if="statement.mainsnak.snaktype !== 'novalue'"
                       v-model="statement.mainsnak.datavalue.value"
                     ></cdx-text-input>
+                    <cdx-button v-if="!(statement.references || statement.qualifiers) && (statement.mainsnak.snaktype !== 'novalue')" action="destructive" weight="quiet" @click="deleteValue(idx, propID)">X</cdx-button>
                   </cdx-field>
                   <span :style="valueTagStyle" v-for="(statement, idx) in statementsMap[propID]" :key="idx">
                   {{parseValue(statement)}}
@@ -732,6 +734,7 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
                   v-model="statement.mainsnak.datavalue.value.time"
                   input-type="datetime-local"
                 ></cdx-text-input>
+                <cdx-button v-if="!(statement.references || statement.qualifiers) && (statement.mainsnak.snaktype !== 'novalue')" action="destructive" weight="quiet" @click="deleteValue(idx, propID)">X</cdx-button>
               </cdx-field>
               <span :style="valueTagStyle" v-for="(statement, idx) in statementsMap[propID]" :key="idx"  v-html="parseValue(statement)"></span>
             </cdx-field>
@@ -748,6 +751,7 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
                     v-if="statement.mainsnak.snaktype !== 'novalue'"
                     v-model="statement.mainsnak.datavalue.value"
                   ></cdx-text-input>
+                  <cdx-button v-if="!(statement.references || statement.qualifiers) && (statement.mainsnak.snaktype !== 'novalue')" action="destructive" weight="quiet" @click="deleteValue(idx, propID)">X</cdx-button>
                 </cdx-field>
                 <span :style="valueTagStyle" v-for="(statement, idx) in statementsMap[propID]" :key="idx">
                   {{parseValue(statement)}}
