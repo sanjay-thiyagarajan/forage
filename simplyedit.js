@@ -1,6 +1,6 @@
 messages = {
   en: {
-    "menu-title": "Edit Properties",
+    "menu-title": "Add property values",
     "fields-for-class-title": "Fields for class",
     "other-fields-title": "Other fields",
     "external-ids-title": "External ID(s)",
@@ -27,7 +27,6 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
   var allProperties = [];
   var allPropertyLabels = [];
   var allClassLabels = {};
-  var claimGUIDsToRemove = [];
   var statementsToCreate = [];
   var propertiesForClasses = {};
   var instancesOf = [];
@@ -49,14 +48,14 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
     window.location.href =
       wbrepo.url +
       wbrepo.articlePath.replace("$1", mw.config.get("wgTitle")) +
-      "?editproperties";
+      "?addpropvalues";
   });
 
   if (mw.config.get("wgPageContentModel") === "wikibase-item") {
     editEntityDiv.append(anchor);
     menuList.append(editEntityDiv);
     const queryString = window.location.search;
-    if (queryString.includes("?editproperties")) {
+    if (queryString.includes("?addpropvalues")) {
       // Active tab switching
       menuList.find("li").each(function () {
         $(this).removeClass("selected");
@@ -392,10 +391,6 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
       }
 
       function deleteValue(idx, propID) {
-        let guid = this.newStatementsMap[propID][idx].id;
-        if (guid !== undefined) {
-          claimGUIDsToRemove.push(guid);
-        }
         this.newStatementsMap[propID].splice(idx, 1);
       }
 
@@ -439,13 +434,32 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
       }
 
       function submitChanges() {
-        console.log("Claims to remove: ", claimGUIDsToRemove);
-        // var api = new mw.Api();
-        // var requestParams = {
-        //   action: 'wbremoveclaims',
-        //   format: 'json',
-        //   claim: claimGUIDsToRemove
-        // };
+        const entityID = mw.config.get("wbEntityId");
+        console.log(mw.config);
+        console.log("Claims to remove: ", newStatementsMap);
+        var api = new mw.Api();
+        var requestParams = {
+          action: "wbcreateclaim",
+          format: "json",
+          entity: entityID,
+          snaktype: "value",
+        };
+        const propertyIDs = Object.keys(newStatementsMap).filter(function (
+          propID
+        ) {
+          return newStatementsMap[propID].length > 0;
+        });
+        if (propertyIDs.length > 0) {
+          console.log(newStatementsMap);
+          // var promises = propertyIDs.map(function(propID){
+          //   newStatementsMap[propID].map(function(statement){
+
+          //   });
+          //   return api.get(
+          //     $.extend({}, requestParams, { property: propID, value: newStatementsMap[propID] })
+          //   );
+          // });
+        }
         // var resp = api.get(requestParams);
         // resp.done(function(){
         //   location.reload();
