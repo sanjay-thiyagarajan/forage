@@ -23,7 +23,6 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
   const startTimeID = "P580";
   const endTimeID = "P582";
   var statementsMap = {};
-  var newStatementsMap = {};
   var allProperties = [];
   var allPropertyLabels = [];
   var allClassLabels = {};
@@ -45,8 +44,8 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
   var editFieldSpan = $("<span>").text(mw.msg("menu-title"));
   var anchor = $("<a>").append(editFieldSpan);
   anchor.on("click", function () {
-    var wbrepo = mw.config.get("wbRepo");
-    window.location.href =
+  	var wbrepo = mw.config.get("wbRepo");
+  	window.location.href =
       wbrepo.url +
       wbrepo.articlePath.replace("$1", mw.config.get("wgTitle")) +
       "?editproperties";
@@ -178,16 +177,11 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
                 });
                 let propertyIDsForCurrentClassBatch = Array.from(allPropIDs);
                 // Remove "instance of" value(s)
-                propertyIDsForCurrentClassBatch.splice(
-                  propertyIDsForCurrentClassBatch.indexOf(instanceOfItemID),
-                  1
-                );
+                propertyIDsForCurrentClassBatch.splice(propertyIDsForCurrentClassBatch.indexOf(instanceOfItemID), 1);
                 setStatementsMap(entity, propertyIDsForCurrentClassBatch);
-                retrieveLabels(
-                  api,
-                  propertyIDsForCurrentClassBatch,
-                  instanceBatch
-                ).then(function (labelsResult) {
+                retrieveLabels(api, propertyIDsForCurrentClassBatch, instanceBatch).then(function (
+                  labelsResult
+                ) {
                   allProperties = allProperties.concat(
                     labelsResult.allProperties
                   );
@@ -200,31 +194,21 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
 
           var propertyIDsForThisPage = Object.keys(entity.claims);
           // Remove "instance of" value(s)
-          propertyIDsForThisPage.splice(
-            propertyIDsForThisPage.indexOf(instanceOfItemID),
-            1
-          );
+          propertyIDsForThisPage.splice(propertyIDsForThisPage.indexOf(instanceOfItemID), 1);
           setStatementsMap(entity, propertyIDsForThisPage);
-
-          var batchedPropertyIDsForThisPage = chunkArray(
-            propertyIDsForThisPage,
-            50
-          );
-          var propertyLabelPromises = batchedPropertyIDsForThisPage.map(
-            function (curPropertyIDsBatch) {
-              return new Promise(async function (innerResolve, innerReject) {
-                var requestParams = {
-                  action: "wbgetentities",
-                  format: "json",
-                  ids: curPropertyIDsBatch,
-                  language: lang,
-                };
-
-                var result = await api.get(requestParams);
-                allProps = Object.entries(result.entities).map(function ([
-                  propID,
-                  value,
-                ]) {
+          
+          var batchedPropertyIDsForThisPage = chunkArray(propertyIDsForThisPage, 50);
+          var propertyLabelPromises = batchedPropertyIDsForThisPage.map(function (curPropertyIDsBatch) {
+            return new Promise(async function (innerResolve, innerReject) {
+              var requestParams = {
+                action: "wbgetentities",
+                format: "json",
+                ids: curPropertyIDsBatch,
+                language: lang,
+              };
+    
+              var result = await api.get(requestParams);
+              allProps = Object.entries(result.entities).map(function([propID, value]){
                   propertyDatatypeMap[propID] = value.datatype;
                   //let propertyIDs = Object.keys(value.claims);
                   //setStatementsMap(value, propertyIDs);
@@ -234,12 +218,13 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
                     label: value.labels[lang].value,
                   };
                 });
-                allProperties = allProperties.concat(allProps);
-                innerResolve();
-              });
-            }
-          );
-
+              allProperties = allProperties.concat(
+                allProps
+              );
+              innerResolve();
+            });
+          });
+          
           // Wait for all promises to resolve and process the results
           Promise.all(promises)
             .then(function (_) {
@@ -483,23 +468,20 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
         if (curValue.id) {
           // entity
           str = allPropIDLabelsMap[curValue.id];
-          if (str == "") {
-            str = curValue.id;
+          if ( str == '' ) {
+          	str = curValue.id;
           }
           let wbrepo = mw.config.get("wbRepo");
-          let entityURL =
-            wbrepo.url + wbrepo.articlePath.replace("$1", curValue.id);
-          str = '<a href="' + entityURL + '" target="_blank">' + str + "</a>";
+          let entityURL = wbrepo.url + wbrepo.articlePath.replace("$1", curValue.id);
+          str = '<a href="' + entityURL + '" target="_blank">' + str + '</a>';
         } else if (curValue.amount) {
-          // number or quantity
-          // Remove "+" if it's there, and add thousands separators.
-          // @TODO - this should use the MediaWiki settings, not the browser locale.
-          str = Number(curValue.amount).toLocaleString(undefined, {
-            maximumFractionDigits: 15,
-          });
+        	// number or quantity
+            // Remove "+" if it's there, and add thousands separators.
+            // @TODO - this should use the MediaWiki settings, not the browser locale.
+            str = Number(curValue.amount).toLocaleString(undefined, { maximumFractionDigits: 15 });
           //if (curValue.unit !== "1") {
-          // quantity
-          // @TODO curValue.unit is a Wikidata URL, so retrieve the unit name from there, and display it.
+            // quantity
+            // @TODO curValue.unit is a Wikidata URL, so retrieve the unit name from there, and display it.
           //}
         } else if (curValue.time) {
           // time
@@ -507,27 +489,18 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
         } else if (curValue.latitude && curValue.longitude) {
           // coordinates ("globe-coordinate")
           str = "(" + curValue.latitude + ", " + curValue.longitude + ")";
-          str =
-            '<a href="https://geohack.toolforge.org/geohack.php?params=' +
-            curValue.latitude +
-            "_N_" +
-            curValue.longitude +
-            '_E" target="_blank">' +
-            str +
-            "</a>";
+          str = '<a href="https://geohack.toolforge.org/geohack.php?params=' + curValue.latitude + '_N_' + curValue.longitude + '_E" target="_blank">' + str + '</a>';
         } else if (curValue.text) {
           // monolingual text
           str = curValue.text;
           if (curValue.language) {
             str += " (" + curValue.language + ")";
           }
-        } else if (statement.mainsnak.datatype == "commonsMedia") {
-          // file
-          let wbrepo = mw.config.get("wbRepo");
-          let entityURL =
-            wbrepo.url + wbrepo.articlePath.replace("$1", "File:" + curValue);
-          str =
-            '<a href="' + entityURL + '" target="_blank">' + curValue + "</a>";
+        } else if (statement.mainsnak.datatype == 'commonsMedia') {
+        	// file
+        	let wbrepo = mw.config.get("wbRepo");
+        	let entityURL = wbrepo.url + wbrepo.articlePath.replace("$1", "File:" + curValue);
+        	str = '<a href="' + entityURL + '" target="_blank">' + curValue + '</a>';
         } else {
           // string, external ID etc. - or just a malformed value?
           str = curValue;
@@ -615,8 +588,7 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
               "border-style:solid; width: 80%; border-width:0.5px; padding: 0 1rem 1rem 1rem; margin-top: 1rem;background: aliceblue;",
             classHeaderStyle: "font-size: 15px;font-weight: bold;",
             qualifierLabelStyle: "font-size: 12px; text-decoration: italic;",
-            valueTagStyle:
-              "display: inline-block; font-size: 13px; padding: 3px 10px; border: 1px solid #999; background: lightyellow; border-radius: 10px; margin: 0 8px 6px 0;",
+            valueTagStyle: "display: inline-block; font-size: 13px; padding: 3px 10px; border: 1px solid #999; background: lightyellow; border-radius: 10px; margin: 0 8px 6px 0;",
             classIDs: [],
             classLabels: {},
             properties: [],
@@ -626,7 +598,6 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
             progress: true,
             autocompleteItems: [],
             existingValueLabels: {},
-            newStatementsMap: {},
             mw,
             allPropIDLabelsMap,
             deleteValue,
@@ -645,35 +616,6 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
                   {{properties[propID].label}}
                   <cdx-button @click="addNewValue(propID)">+</cdx-button>
                 </template>
-                <cdx-field style="width: max-content;" v-for="(statement, idx) in newStatementsMap[propID]" :key="idx" style="display: flex; flex-direction: row;">
-                  <cdx-typeahead-search
-                    id="'typeahead-search-' + idx"
-                    v-if="properties[propID].datatype === 'wikibase-item' && !(statement.references || statement.qualifiers) && (statement.mainsnak.snaktype !== 'novalue')"
-                    :initial-input-value="allPropIDLabelsMap[statement.mainsnak.datavalue.value.id]"
-                    placeholder="Type or choose an option"
-                    search-results-label="Search results"
-                    :search-results="autocompleteItems"
-                    :show-thumbnail="true"
-                    :highlight-query="true"
-                    :visible-item-limit="5"
-                    @input="comboboxOnChange($event, propID)"
-                    @search-result-click="comboboxOnSelect"
-                    @blur="resetOptions"
-                  ></cdx-typeahead-search>
-                  <cdx-text-input
-                    v-if="(properties[propID].datatype === 'commonsMedia' || properties[propID].datatype === 'string') && !(statement.references || statement.qualifiers) && (statement.mainsnak.snaktype !== 'novalue')"
-                    v-model="statement.mainsnak.datavalue.value"
-                  ></cdx-text-input>
-                  <cdx-text-input
-                    v-if="properties[propID].datatype === 'quantity' && !(statement.references || statement.qualifiers) && (statement.mainsnak.snaktype !== 'novalue')"
-                    v-model="statement.mainsnak.datavalue.value.amount"
-                  ></cdx-text-input>
-                  <cdx-text-input
-                    v-if="properties[propID].datatype === 'time' && !(statement.references || statement.qualifiers) && (statement.mainsnak.snaktype !== 'novalue')"
-                    v-model="statement.mainsnak.datavalue.value.time"
-                    input-type="datetime-local"
-                  ></cdx-text-input>
-                </cdx-field>
                 <span :style="valueTagStyle" v-for="(statement, idx) in statementsMap[propID]" :key="idx" v-html="parseValue(statement)"></span>
               </cdx-field>
               <br>
@@ -684,12 +626,6 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
                     {{properties[propID].label}}
                     <cdx-button @click="addNewValue(propID)">+</cdx-button>
                   </template>
-                  <cdx-field style="width: max-content;" v-for="(statement, idx) in newStatementsMap[propID]" :key="idx" style="display: flex; flex-direction: row;">
-                    <cdx-text-input
-                      v-if="statement.mainsnak.snaktype !== 'novalue'"
-                      v-model="statement.mainsnak.datavalue.value"
-                    ></cdx-text-input>
-                  </cdx-field>
                   <span :style="valueTagStyle" v-for="(statement, idx) in statementsMap[propID]" :key="idx">
                   {{parseValue(statement)}}
                   </span>
@@ -704,35 +640,6 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
                 {{properties[propID].label}}
                 <cdx-button @click="addNewValue(propID)">+</cdx-button>
               </template>
-              <cdx-field style="width: max-content;" v-for="(statement, idx) in newStatementsMap[propID]" :key="idx" style="display: flex; flex-direction: row;">
-                <cdx-typeahead-search
-                  id="'typeahead-search-' + idx"
-                  v-if="properties[propID].datatype === 'wikibase-item' && !(statement.references || statement.qualifiers) && (statement.mainsnak.snaktype !== 'novalue')"
-                  :initial-input-value="allPropIDLabelsMap[statement.mainsnak.datavalue.value.id]"
-                  placeholder="Type or choose an option"
-                  search-results-label="Search results"
-                  :search-results="autocompleteItems"
-                  :show-thumbnail="true"
-                  :highlight-query="true"
-                  :visible-item-limit="5"
-                  @input="comboboxOnChange($event, propID)"
-                  @search-result-click="comboboxOnSelect"
-                  @blur="resetOptions"
-                ></cdx-typeahead-search>
-                <cdx-text-input
-                  v-if="(properties[propID].datatype === 'commonsMedia' || properties[propID].datatype === 'string') && !(statement.references || statement.qualifiers) && (statement.mainsnak.snaktype !== 'novalue')"
-                  v-model="statement.mainsnak.datavalue.value"
-                ></cdx-text-input>
-                <cdx-text-input
-                  v-if="properties[propID].datatype === 'quantity' && !(statement.references || statement.qualifiers) && (statement.mainsnak.snaktype !== 'novalue')"
-                  v-model="statement.mainsnak.datavalue.value.amount"
-                ></cdx-text-input>
-                <cdx-text-input
-                  v-if="properties[propID].datatype === 'time' && !(statement.references || statement.qualifiers) && (statement.mainsnak.snaktype !== 'novalue')"
-                  v-model="statement.mainsnak.datavalue.value.time"
-                  input-type="datetime-local"
-                ></cdx-text-input>
-              </cdx-field>
               <span :style="valueTagStyle" v-for="(statement, idx) in statementsMap[propID]" :key="idx"  v-html="parseValue(statement)"></span>
             </cdx-field>
             <br>
@@ -743,12 +650,6 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
                   {{properties[propID].label}}
                   <cdx-button @click="addNewValue(propID)">+</cdx-button>
                 </template>
-                <cdx-field style="width: max-content;" v-for="(statement, idx) in newStatementsMap[propID]" :key="idx" style="display: flex; flex-direction: row;">
-                  <cdx-text-input
-                    v-if="statement.mainsnak.snaktype !== 'novalue'"
-                    v-model="statement.mainsnak.datavalue.value"
-                  ></cdx-text-input>
-                </cdx-field>
                 <span :style="valueTagStyle" v-for="(statement, idx) in statementsMap[propID]" :key="idx">
                   {{parseValue(statement)}}
                 </span>
@@ -762,8 +663,8 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
         </div>
 		  `,
         mounted() {
-          $("title").prepend(mw.msg("menu-title") + ": ");
-          $(".wikibase-title").prepend(mw.msg("menu-title") + ":");
+        	$('title').prepend(mw.msg('menu-title') + ': ');
+        	$('.wikibase-title').prepend(mw.msg('menu-title') + ':');
 
           const itemID = mw.config.get("wbEntityId");
           var api = new mw.Api();
@@ -874,14 +775,13 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
             that.otherPropertiesMap = newOtherPropertiesMap;
             that.classPropertiesMap = newClassPropertiesMap;
             that.statementsMap = statementsMap;
-            that.newStatementsMap = newStatementsMap;
             that.progress = false;
           });
         },
         methods: {
           getWikibaseURL: function (id) {
-            var wbrepo = mw.config.get("wbRepo");
-            return wbrepo.url + wbrepo.articlePath.replace("$1", id);
+          	var wbrepo = mw.config.get("wbRepo");
+          	return wbrepo.url + wbrepo.articlePath.replace("$1", id);
           },
           parseDateTime: function (timeString) {
             const cleanDateTime = timeString.slice(1, -1);
@@ -932,11 +832,11 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
                 },
               };
             }
-            if (newStatementsMap[propID]) {
-              this.newStatementsMap[propID].unshift(statement);
+            if (statementsMap[propID]) {
+              this.statementsMap[propID].unshift(statement);
             } else {
-              this.newStatementsMap[propID] = [];
-              this.newStatementsMap[propID].push(statement);
+              this.statementsMap[propID] = [];
+              this.statementsMap[propID].push(statement);
             }
           },
           comboboxOnChange: function (value, propID) {
