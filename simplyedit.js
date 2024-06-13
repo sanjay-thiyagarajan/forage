@@ -684,6 +684,12 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
                     {{properties[propID].label}}
                     <cdx-button @click="addNewValue(propID)">+</cdx-button>
                   </template>
+                  <cdx-field style="width: max-content;" v-for="(statement, idx) in newStatementsMap[propID]" :key="idx" style="display: flex; flex-direction: row;">
+                    <cdx-text-input
+                      v-if="statement.mainsnak.snaktype !== 'novalue'"
+                      v-model="statement.mainsnak.datavalue.value"
+                    ></cdx-text-input>
+                  </cdx-field>
                   <span :style="valueTagStyle" v-for="(statement, idx) in statementsMap[propID]" :key="idx">
                   {{parseValue(statement)}}
                   </span>
@@ -698,6 +704,35 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
                 {{properties[propID].label}}
                 <cdx-button @click="addNewValue(propID)">+</cdx-button>
               </template>
+              <cdx-field style="width: max-content;" v-for="(statement, idx) in newStatementsMap[propID]" :key="idx" style="display: flex; flex-direction: row;">
+                <cdx-typeahead-search
+                  id="'typeahead-search-' + idx"
+                  v-if="properties[propID].datatype === 'wikibase-item' && !(statement.references || statement.qualifiers) && (statement.mainsnak.snaktype !== 'novalue')"
+                  :initial-input-value="allPropIDLabelsMap[statement.mainsnak.datavalue.value.id]"
+                  placeholder="Type or choose an option"
+                  search-results-label="Search results"
+                  :search-results="autocompleteItems"
+                  :show-thumbnail="true"
+                  :highlight-query="true"
+                  :visible-item-limit="5"
+                  @input="comboboxOnChange($event, propID)"
+                  @search-result-click="comboboxOnSelect"
+                  @blur="resetOptions"
+                ></cdx-typeahead-search>
+                <cdx-text-input
+                  v-if="(properties[propID].datatype === 'commonsMedia' || properties[propID].datatype === 'string') && !(statement.references || statement.qualifiers) && (statement.mainsnak.snaktype !== 'novalue')"
+                  v-model="statement.mainsnak.datavalue.value"
+                ></cdx-text-input>
+                <cdx-text-input
+                  v-if="properties[propID].datatype === 'quantity' && !(statement.references || statement.qualifiers) && (statement.mainsnak.snaktype !== 'novalue')"
+                  v-model="statement.mainsnak.datavalue.value.amount"
+                ></cdx-text-input>
+                <cdx-text-input
+                  v-if="properties[propID].datatype === 'time' && !(statement.references || statement.qualifiers) && (statement.mainsnak.snaktype !== 'novalue')"
+                  v-model="statement.mainsnak.datavalue.value.time"
+                  input-type="datetime-local"
+                ></cdx-text-input>
+              </cdx-field>
               <span :style="valueTagStyle" v-for="(statement, idx) in statementsMap[propID]" :key="idx"  v-html="parseValue(statement)"></span>
             </cdx-field>
             <br>
@@ -708,6 +743,12 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
                   {{properties[propID].label}}
                   <cdx-button @click="addNewValue(propID)">+</cdx-button>
                 </template>
+                <cdx-field style="width: max-content;" v-for="(statement, idx) in newStatementsMap[propID]" :key="idx" style="display: flex; flex-direction: row;">
+                  <cdx-text-input
+                    v-if="statement.mainsnak.snaktype !== 'novalue'"
+                    v-model="statement.mainsnak.datavalue.value"
+                  ></cdx-text-input>
+                </cdx-field>
                 <span :style="valueTagStyle" v-for="(statement, idx) in statementsMap[propID]" :key="idx">
                   {{parseValue(statement)}}
                 </span>
