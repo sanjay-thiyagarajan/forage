@@ -35,6 +35,7 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
   };
   var propertyDatatypeMap = {};
   var classIDList = [];
+  var allUnitIDs = new Set();
   var menuList = $("#right-navigation").find(".vector-menu-content-list");
   var editEntityDiv = $("<li>").attr({
     id: "ca-edit-entity",
@@ -511,10 +512,13 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
           str = Number(curValue.amount).toLocaleString(undefined, {
             maximumFractionDigits: 15,
           });
-          //if (curValue.unit !== "1") {
-          // quantity
-          // @TODO curValue.unit is a Wikidata URL, so retrieve the unit name from there, and display it.
-          //}
+          if (curValue.unit !== "1") {
+          	// quantity
+          	var unitID = curValue.unit.split('/').pop(); // curValue is a URL.
+          	// Add an HTML tag for this ID - it will be replaced with the label later.
+          	str += ' <' + unitID + '></' + unitID + '>';
+          	allUnitIDs.add(unitID);
+          }
         } else if (curValue.time) {
           // time
           str = parseTimeValue(curValue);
@@ -622,6 +626,30 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
           .catch(function (error) {
             console.error("Error fetching labels:", error);
           });
+      }
+
+      /** 
+       * For each unit used on this page, get its label and replace the (hacky) HTML
+       * tag created for it with the label.
+       */
+      function replaceUnitIDsWithLabels() {
+      	var api = new mw.Api();
+      	var lang = mw.config.get("wgUserLanguage");
+      	var requestParams = {
+      		action: "wbgetentities",
+      		ids: Array.from(allUnitIDs),
+      		props: "labels",
+      		languages: lang,
+      		format: "json",
+      	};
+      	var result = api.get(requestParams);
+      	result.done(async function (res) {
+      		var unitEntities = res.entities;
+      		Object.keys(unitEntities).forEach(function (unitID) {
+      			var unitLabel = unitEntities[unitID].labels[lang].value;
+      			$(unitID).replaceWith(unitLabel);
+      		});
+      	});
       }
 
       Vue.createMwApp({
@@ -898,6 +926,9 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
             that.newStatementsMap = newStatementsMap;
             that.progress = false;
           });
+        },
+        updated() {
+        	replaceUnitIDsWithLabels();
         },
         methods: {
           getWikibaseURL: function (id) {
