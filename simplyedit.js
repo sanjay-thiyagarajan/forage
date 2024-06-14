@@ -685,7 +685,7 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
           <template v-if="!progress" v-for="classID in classIDs">
             <cdx-accordion v-if="classPropertiesMap[classID]['general'].length > 0 || classPropertiesMap[classID]['external'].length > 0" :style="classDivStyle">
               <template #title>{{mw.msg('fields-for-class-title')}} <a :href=getWikibaseURL(classID) target="_blank">{{classLabels[classID]}}</a></template>
-              <cdx-field style="max-width: max-content;" v-for="propID in classPropertiesMap[classID]['general']">
+              <cdx-field style="max-width: max-content;" v-for="propID in classPropertiesMap[classID]['generalSorted']">
                 <template #label>
                   {{properties[propID].label}}
                   <cdx-button @click="addNewValue(propID)">+</cdx-button>
@@ -725,9 +725,9 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
               <br>
               <cdx-accordion style="background: white; border: 1px solid #ccc;" v-if="classPropertiesMap[classID]['external'].length > 0">
                 <template #title>{{mw.msg('external-ids-title')}}</template>
-                <cdx-field style="width: max-content;" v-for="propID in classPropertiesMap[classID]['external']">
+                <cdx-field style="width: max-content;" v-for="propID in classPropertiesMap[classID]['externalSorted']">
                   <template #label>
-                    {{properties[propID].label}}
+                     {{properties[propID].label}}
                     <cdx-button @click="addNewValue(propID)">+</cdx-button>
                   </template>
                   <cdx-field style="width: max-content;" v-for="(statement, idx) in newStatementsMap[propID]" :key="idx" style="display: flex; flex-direction: row;">
@@ -746,7 +746,7 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
           </template>
           <cdx-accordion :style="classDivStyle" v-if="!progress && (otherPropertiesMap['general'].length > 0 || otherPropertiesMap['external'].length > 0)">
             <template #title>{{mw.msg('other-fields-title')}}</template>
-            <cdx-field style="width: 80%;" v-for="propID in otherPropertiesMap['general']">
+            <cdx-field style="width: 80%;" v-for="propID in otherPropertiesMap['generalSorted']">
               <template #label>
                 {{properties[propID].label}}
                 <cdx-button @click="addNewValue(propID)">+</cdx-button>
@@ -786,7 +786,7 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
             <br>
             <cdx-accordion style="background: white; border: 1px solid #ccc;" v-if="otherPropertiesMap['external'].length > 0">
               <template #title>{{mw.msg('external-ids-title')}}</template>
-              <cdx-field style="width: max-content;" v-for="propID in otherPropertiesMap['external']">
+              <cdx-field style="width: max-content;" v-for="propID in otherPropertiesMap['externalSorted']">
                 <template #label>
                   {{properties[propID].label}}
                   <cdx-button @click="addNewValue(propID)">+</cdx-button>
@@ -871,6 +871,15 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
                   propertiesForClasses[classID].filter(function (propID) {
                     return allExternals.includes(propID);
                   });
+                // Create alphabetically sorted (by property label) arrays as well.
+                let generalPropertiesArray = Object.values(newClassPropertiesMap[classID]["general"]);
+                newClassPropertiesMap[classID]["generalSorted"] = generalPropertiesArray.sort((a, b) => {
+                	return that.properties[a].label.toLowerCase() > that.properties[b].label.toLowerCase() ? 1 : -1;
+                });
+                let externalPropertiesArray = Object.values(newClassPropertiesMap[classID]["external"]);
+                newClassPropertiesMap[classID]["externalSorted"] = externalPropertiesArray.sort((a, b) => {
+                	return that.properties[a].label.toLowerCase() > that.properties[b].label.toLowerCase() ? 1 : -1;
+                });
               }
             });
             var existingGeneralPropertyIDs = [];
@@ -894,6 +903,17 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
                 }
               }
             });
+
+            // Create alphabetically sorted (by property label) arrays as well.
+            let generalPropertiesArray = Object.values(newOtherPropertiesMap["general"]);
+            newOtherPropertiesMap["generalSorted"] = generalPropertiesArray.sort((a, b) => {
+            	return that.properties[a].label.toLowerCase() > that.properties[b].label.toLowerCase() ? 1 : -1;
+            });
+            let externalPropertiesArray = Object.values(newOtherPropertiesMap["external"]);
+            newOtherPropertiesMap["externalSorted"] = externalPropertiesArray.sort((a, b) => {
+            	return that.properties[a].label.toLowerCase() > that.properties[b].label.toLowerCase() ? 1 : -1;
+            });
+
             var allQualifiers = new Set();
             var allEntityIDs = new Set();
             Object.keys(statementsMap).forEach(function (propID) {
