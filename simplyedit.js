@@ -513,11 +513,11 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
             maximumFractionDigits: 15,
           });
           if (curValue.unit !== "1") {
-          	// quantity
-          	var unitID = curValue.unit.split('/').pop(); // curValue is a URL.
-          	// Add an HTML tag for this ID - it will be replaced with the label later.
-          	str += ' <' + unitID + '></' + unitID + '>';
-          	allUnitIDs.add(unitID);
+            // quantity
+            var unitID = curValue.unit.split("/").pop(); // curValue is a URL.
+            // Add an HTML tag for this ID - it will be replaced with the label later.
+            str += " <" + unitID + "></" + unitID + ">";
+            allUnitIDs.add(unitID);
           }
         } else if (curValue.time) {
           // time
@@ -548,7 +548,11 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
             '<a href="' + entityURL + '" target="_blank">' + curValue + "</a>";
         } else if (statement.mainsnak.datatype == "url") {
           str =
-            '<a href="' + curValue + '" class="external" target="_blank">' + curValue + "</a>";
+            '<a href="' +
+            curValue +
+            '" class="external" target="_blank">' +
+            curValue +
+            "</a>";
         } else {
           // string, external ID etc. - or just a malformed value?
           str = curValue;
@@ -628,28 +632,28 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
           });
       }
 
-      /** 
+      /**
        * For each unit used on this page, get its label and replace the (hacky) HTML
        * tag created for it with the label.
        */
       function replaceUnitIDsWithLabels() {
-      	var api = new mw.Api();
-      	var lang = mw.config.get("wgUserLanguage");
-      	var requestParams = {
-      		action: "wbgetentities",
-      		ids: Array.from(allUnitIDs),
-      		props: "labels",
-      		languages: lang,
-      		format: "json",
-      	};
-      	var result = api.get(requestParams);
-      	result.done(async function (res) {
-      		var unitEntities = res.entities;
-      		Object.keys(unitEntities).forEach(function (unitID) {
-      			var unitLabel = unitEntities[unitID].labels[lang].value;
-      			$(unitID).replaceWith(unitLabel);
-      		});
-      	});
+        var api = new mw.Api();
+        var lang = mw.config.get("wgUserLanguage");
+        var requestParams = {
+          action: "wbgetentities",
+          ids: Array.from(allUnitIDs),
+          props: "labels",
+          languages: lang,
+          format: "json",
+        };
+        var result = api.get(requestParams);
+        result.done(async function (res) {
+          var unitEntities = res.entities;
+          Object.keys(unitEntities).forEach(function (unitID) {
+            var unitLabel = unitEntities[unitID].labels[lang].value;
+            $(unitID).replaceWith(unitLabel);
+          });
+        });
       }
 
       Vue.createMwApp({
@@ -701,7 +705,7 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
                     :show-thumbnail="true"
                     :highlight-query="true"
                     :visible-item-limit="5"
-                    @input="comboboxOnChange($event, propID)"
+                    @input="comboboxOnChange"
                     @search-result-click="comboboxOnSelect"
                     @blur="resetOptions"
                   ></cdx-typeahead-search>
@@ -762,7 +766,7 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
                   :show-thumbnail="true"
                   :highlight-query="true"
                   :visible-item-limit="5"
-                  @input="comboboxOnChange($event, propID)"
+                  @input="comboboxOnChange"
                   @search-result-click="comboboxOnSelect"
                   @blur="resetOptions"
                 ></cdx-typeahead-search>
@@ -928,7 +932,7 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
           });
         },
         updated() {
-        	replaceUnitIDsWithLabels();
+          replaceUnitIDsWithLabels();
         },
         methods: {
           getWikibaseURL: function (id) {
@@ -991,108 +995,31 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
               this.newStatementsMap[propID].push(statement);
             }
           },
-          comboboxOnChange: function (value, propID) {
+          comboboxOnChange: function (value) {
             this.autocompleteItems = [];
             this.$forceUpdate();
             var api = new mw.Api();
-            const that = this;
             const lang = mw.config.get("wgUserLanguage");
-            var sparqlQuery =
-              "\nSELECT DISTINCT (STRAFTER(STR(?item), 'http://www.wikidata.org/entity/') AS ?itemID) ?itemLabel ?itemDescription WHERE {\n  ?item wdt:" +
-              propID +
-              " [].\n" +
-              "?item rdfs:label ?itemLabel.\n" +
-              "?item schema:description ?itemDescription.\n";
-            var instancesOfList = instancesOf.map(function (classID) {
-              return "{\n ?item wdt:P31/wdt:P279* wd:" + classID + ".\n}\n";
-            });
-            sparqlQuery += instancesOfList.join(" UNION ");
-            sparqlQuery +=
-              'FILTER(LANG(?itemLabel) = "' +
-              lang +
-              '").\n' +
-              'FILTER(LANG(?itemDescription) = "' +
-              lang +
-              '").\n' +
-              'FILTER(STRSTARTS(LCASE(?itemLabel), "' +
-              value.toLowerCase() +
-              '"))\n' +
-              "}LIMIT 20\n";
-            var url = "https://query.wikidata.org/sparql";
-            var params =
-              "action=query&format=json&list=sparqlquery&utf8=1&query=" +
-              encodeURIComponent(sparqlQuery);
-
-            var xhr = new XMLHttpRequest();
-            xhr.open("GET", url + "?" + params, true);
-            xhr.onreadystatechange = async function () {
-              if (xhr.readyState === 4) {
-                if (xhr.status === 200) {
-                  var data = JSON.parse(xhr.responseText);
-                  var items = data.results.bindings;
-                  var options = items.map(function (entry) {
-                    return {
-                      id: entry.itemID.value,
-                      label: entry.itemLabel.value,
-                      description: entry.itemDescription
-                        ? entry.itemDescription.value
-                        : "",
-                      url: entry.itemURL ? entry.itemURL.value : "",
-                      match: {
-                        type: entry.matchType ? entry.matchType.value : "",
-                        text: entry.matchText ? entry.matchText.value : "",
-                        language: entry.matchLanguage
-                          ? entry.matchLanguage.value
-                          : "",
-                      },
-                      display: {
-                        label: {
-                          language: entry.itemLabelLanguage
-                            ? entry.itemLabelLanguage.value
-                            : "",
-                        },
-                        description: {
-                          language: entry.itemDescriptionLanguage
-                            ? entry.itemDescriptionLanguage.value
-                            : "",
-                        },
-                      },
-                      thumbnail: entry.thumbnail
-                        ? {
-                            url: entry.thumbnail.value,
-                            width: entry.thumbnailWidth
-                              ? entry.thumbnailWidth.value
-                              : null,
-                            height: entry.thumbnailHeight
-                              ? entry.thumbnailHeight.value
-                              : null,
-                          }
-                        : undefined,
-                    };
-                  });
-                  if (options.length < 20) {
-                    var api = new mw.Api();
-                    const lang = mw.config.get("wgUserLanguage");
-                    var requestParams = {
-                      action: "wbsearchentities",
-                      format: "json",
-                      search: value,
-                      language: lang,
-                      type: "item",
-                      limit: 20,
-                    };
-                    var data = await api.get($.extend({}, requestParams, {}));
-                    options = options.concat(data.search);
-                  }
-                  that.autocompleteItems =
-                    options && options.length > 0
-                      ? adaptApiResponse(options)
-                      : [];
-                  that.$forceUpdate();
-                }
-              }
+            var requestParams = {
+              action: "wbsearchentities",
+              format: "json",
+              search: value,
+              language: lang,
+              type: "item",
+              limit: 20,
             };
-            xhr.send();
+            var values = api.get($.extend({}, requestParams, {}));
+            const that = this;
+            values.done(function (data) {
+              // If there are results, format them into an array of
+              // SearchResults to be passed into TypeaheadSearch for
+              // display as a menu of search results.
+              that.autocompleteItems =
+                data.search && data.search.length > 0
+                  ? adaptApiResponse(data.search)
+                  : [];
+              that.$forceUpdate();
+            });
           },
           comboboxOnSelect: function (value) {
             let selectedValue = value;
