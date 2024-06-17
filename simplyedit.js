@@ -696,7 +696,7 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
                   {{properties[propID].label}}
                   <cdx-button @click="addNewValue(propID)">+</cdx-button>
                 </template>
-                <cdx-field style="width: max-content;" v-for="(statement, idx) in newStatementsMap[propID]" :key="idx" style="display: flex; flex-direction: row;">
+                <div style="width: max-content;" v-for="(statement, idx) in newStatementsMap[propID]" :key="idx" style="display: flex; flex-direction: row;">
                   <cdx-typeahead-search
                     id="'typeahead-search-' + idx"
                     v-if="properties[propID].datatype === 'wikibase-item' && !(statement.references || statement.qualifiers) && (statement.mainsnak.snaktype !== 'novalue')"
@@ -725,7 +725,7 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
                     input-type="datetime-local"
                   ></cdx-text-input>
                   <cdx-button v-if="!(statement.references || statement.qualifiers) && (statement.mainsnak.snaktype !== 'novalue')" action="destructive" weight="quiet" @click="deleteValue(idx, propID)">X</cdx-button>
-                </cdx-field>
+                </div>
                 <span :style="valueTagStyle" v-for="(statement, idx) in statementsMap[propID]" :key="idx" v-html="parseValue(statement)"></span>
               </cdx-field>
               <br>
@@ -736,13 +736,13 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
                      {{properties[propID].label}}
                     <cdx-button @click="addNewValue(propID)">+</cdx-button>
                   </template>
-                  <cdx-field style="width: max-content;" v-for="(statement, idx) in newStatementsMap[propID]" :key="idx" style="display: flex; flex-direction: row;">
+                  <div style="width: max-content;" v-for="(statement, idx) in newStatementsMap[propID]" :key="idx" style="display: flex; flex-direction: row;">
                     <cdx-text-input
                       v-if="statement.mainsnak.snaktype !== 'novalue'"
                       v-model="statement.mainsnak.datavalue.value"
                     ></cdx-text-input>
                     <cdx-button v-if="!(statement.references || statement.qualifiers) && (statement.mainsnak.snaktype !== 'novalue')" action="destructive" weight="quiet" @click="deleteValue(idx, propID)">X</cdx-button>
-                  </cdx-field>
+                  </div>
                   <span :style="valueTagStyle" v-for="(statement, idx) in statementsMap[propID]" :key="idx">
                   {{parseValue(statement)}}
                   </span>
@@ -757,7 +757,7 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
                 {{properties[propID].label}}
                 <cdx-button @click="addNewValue(propID)">+</cdx-button>
               </template>
-              <cdx-field style="width: max-content;" v-for="(statement, idx) in newStatementsMap[propID]" :key="idx" style="display: flex; flex-direction: row;">
+              <div style="width: max-content;" v-for="(statement, idx) in newStatementsMap[propID]" :key="idx" style="display: flex; flex-direction: row;">
                 <cdx-typeahead-search
                   id="'typeahead-search-' + idx"
                   v-if="properties[propID].datatype === 'wikibase-item' && !(statement.references || statement.qualifiers) && (statement.mainsnak.snaktype !== 'novalue')"
@@ -786,7 +786,7 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
                   input-type="datetime-local"
                 ></cdx-text-input>
                 <cdx-button v-if="!(statement.references || statement.qualifiers) && (statement.mainsnak.snaktype !== 'novalue')" action="destructive" weight="quiet" @click="deleteValue(idx, propID)">X</cdx-button>
-              </cdx-field>
+              </div>
               <span :style="valueTagStyle" v-for="(statement, idx) in statementsMap[propID]" :key="idx"  v-html="parseValue(statement)"></span>
             </cdx-field>
             <br>
@@ -797,13 +797,13 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
                   {{properties[propID].label}}
                   <cdx-button @click="addNewValue(propID)">+</cdx-button>
                 </template>
-                <cdx-field style="width: max-content;" v-for="(statement, idx) in newStatementsMap[propID]" :key="idx" style="display: flex; flex-direction: row;">
+                <div style="width: max-content;" v-for="(statement, idx) in newStatementsMap[propID]" :key="idx" style="display: flex; flex-direction: row;">
                   <cdx-text-input
                     v-if="statement.mainsnak.snaktype !== 'novalue'"
                     v-model="statement.mainsnak.datavalue.value"
                   ></cdx-text-input>
                   <cdx-button v-if="!(statement.references || statement.qualifiers) && (statement.mainsnak.snaktype !== 'novalue')" action="destructive" weight="quiet" @click="deleteValue(idx, propID)">X</cdx-button>
-                </cdx-field>
+                </div>
                 <span :style="valueTagStyle" v-for="(statement, idx) in statementsMap[propID]" :key="idx">
                   {{parseValue(statement)}}
                 </span>
