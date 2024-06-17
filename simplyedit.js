@@ -100,7 +100,7 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
           action: "wbgetentities",
           format: "json",
           ids: newIds,
-          language: lang,
+          languages: lang + "|en",
         };
         try {
           const res = await api.get($.extend({}, requestParams));
@@ -217,7 +217,7 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
                   action: "wbgetentities",
                   format: "json",
                   ids: curPropertyIDsBatch,
-                  language: lang,
+                  languages: lang + "|en",
                 };
 
                 var result = await api.get(requestParams);
@@ -231,7 +231,7 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
                   return {
                     id: propID,
                     datatype: value.datatype,
-                    label: value.labels[lang].value,
+                    label: value.labels[lang] ? value.labels[lang].value : value.labels['en'].value,
                   };
                 });
                 allProperties = allProperties.concat(allProps);
@@ -292,7 +292,7 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
                     properties.push({
                       id: prop.id,
                       datatype: prop.datatype,
-                      label: prop.labels[lang] ? prop.labels[lang].value : "",
+                      label: prop.labels[lang] ? prop.labels[lang].value : prop.labels['en'].value,
                     });
                   } else {
                     classLabelsBatch[prop.id] = prop.labels[lang]
@@ -332,7 +332,7 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
         var requestParams = {
           action: "wbgetentities",
           format: "json",
-          language: lang,
+          languages: lang + "|en",
         };
         var batchSize = 50; // Maximum number of IDs per request
         var chunks = [];
@@ -360,7 +360,7 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
                 properties.push({
                   id: prop.id,
                   datatype: prop.datatype,
-                  label: prop.labels[lang] ? prop.labels[lang].value : "",
+                  label: prop.labels[lang] ? prop.labels[lang].value : prop.labels['en'].value,
                 });
               } else {
                 classLabels[prop.id] = prop.labels[lang]
@@ -611,7 +611,7 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
               var prop = props[idx];
               labels[prop.id] = prop.labels[lang]
                 ? prop.labels[lang].value
-                : "";
+                : prop.labels['en'].value;
             });
 
             return { propIDLabelMap: labels };
@@ -643,14 +643,16 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
           action: "wbgetentities",
           ids: Array.from(allUnitIDs),
           props: "labels",
-          languages: lang,
+          languages: lang + "|en",
           format: "json",
         };
         var result = api.get(requestParams);
         result.done(async function (res) {
           var unitEntities = res.entities;
           Object.keys(unitEntities).forEach(function (unitID) {
-            var unitLabel = unitEntities[unitID].labels[lang].value;
+            var unitLabel = unitEntities[unitID].labels[lang] ?
+              unitEntities[unitID].labels[lang].value :
+              unitEntities[unitID].labels['en'].value;
             $(unitID).replaceWith(unitLabel);
           });
         });
@@ -1024,7 +1026,7 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
               action: "wbsearchentities",
               format: "json",
               search: value,
-              language: lang,
+              languages: lang,
               type: "item",
               limit: 20,
             };
