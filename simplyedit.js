@@ -1026,7 +1026,7 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
               action: "wbsearchentities",
               format: "json",
               search: value,
-              languages: lang,
+              language: lang,
               type: "item",
               limit: 20,
             };
