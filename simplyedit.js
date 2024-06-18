@@ -233,7 +233,9 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
                   return {
                     id: propID,
                     datatype: value.datatype,
-                    label: value.labels[lang] ? value.labels[lang].value : value.labels['en'].value,
+                    label: value.labels[lang]
+                      ? value.labels[lang].value
+                      : value.labels["en"].value,
                   };
                 });
                 allProperties = allProperties.concat(allProps);
@@ -294,7 +296,9 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
                     properties.push({
                       id: prop.id,
                       datatype: prop.datatype,
-                      label: prop.labels[lang] ? prop.labels[lang].value : prop.labels['en'].value,
+                      label: prop.labels[lang]
+                        ? prop.labels[lang].value
+                        : prop.labels["en"].value,
                     });
                   } else {
                     classLabelsBatch[prop.id] = prop.labels[lang]
@@ -362,7 +366,9 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
                 properties.push({
                   id: prop.id,
                   datatype: prop.datatype,
-                  label: prop.labels[lang] ? prop.labels[lang].value : prop.labels['en'].value,
+                  label: prop.labels[lang]
+                    ? prop.labels[lang].value
+                    : prop.labels["en"].value,
                 });
               } else {
                 classLabels[prop.id] = prop.labels[lang]
@@ -418,7 +424,6 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
             label,
             match: match.type === "alias" ? `(${match.text})` : "",
             description,
-            url,
             language: {
               label: display && display.label && display.label.language,
               match: match.type === "alias" ? match.language : undefined,
@@ -613,7 +618,7 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
               var prop = props[idx];
               labels[prop.id] = prop.labels[lang]
                 ? prop.labels[lang].value
-                : prop.labels['en'].value;
+                : prop.labels["en"].value;
             });
 
             return { propIDLabelMap: labels };
@@ -652,9 +657,9 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
         result.done(async function (res) {
           var unitEntities = res.entities;
           Object.keys(unitEntities).forEach(function (unitID) {
-            var unitLabel = unitEntities[unitID].labels[lang] ?
-              unitEntities[unitID].labels[lang].value :
-              unitEntities[unitID].labels['en'].value;
+            var unitLabel = unitEntities[unitID].labels[lang]
+              ? unitEntities[unitID].labels[lang].value
+              : unitEntities[unitID].labels["en"].value;
             $(unitID).replaceWith(unitLabel);
           });
         });
@@ -712,7 +717,7 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
                     :highlight-query="true"
                     :visible-item-limit="5"
                     @input="comboboxOnChange"
-                    @search-result-click="comboboxOnSelect"
+                    @search-result-click="comboboxOnSelect($event, propID, idx)"
                     @blur="resetOptions"
                   ></cdx-typeahead-search>
                   <cdx-text-input
@@ -753,7 +758,7 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
                   :highlight-query="true"
                   :visible-item-limit="5"
                   @input="comboboxOnChange"
-                  @search-result-click="comboboxOnSelect"
+                  @search-result-click="comboboxOnSelect($event, propID, idx)"
                   @blur="resetOptions"
                 ></cdx-typeahead-search>
                 <cdx-text-input
@@ -886,14 +891,26 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
                     return allExternals.includes(propID);
                   });
                 // Create alphabetically sorted (by property label) arrays as well.
-                let generalPropertiesArray = Object.values(newClassPropertiesMap[classID]["general"]);
-                newClassPropertiesMap[classID]["generalSorted"] = generalPropertiesArray.sort((a, b) => {
-                	return that.properties[a].label.toLowerCase() > that.properties[b].label.toLowerCase() ? 1 : -1;
-                });
-                let externalPropertiesArray = Object.values(newClassPropertiesMap[classID]["external"]);
-                newClassPropertiesMap[classID]["externalSorted"] = externalPropertiesArray.sort((a, b) => {
-                	return that.properties[a].label.toLowerCase() > that.properties[b].label.toLowerCase() ? 1 : -1;
-                });
+                let generalPropertiesArray = Object.values(
+                  newClassPropertiesMap[classID]["general"]
+                );
+                newClassPropertiesMap[classID]["generalSorted"] =
+                  generalPropertiesArray.sort((a, b) => {
+                    return that.properties[a].label.toLowerCase() >
+                      that.properties[b].label.toLowerCase()
+                      ? 1
+                      : -1;
+                  });
+                let externalPropertiesArray = Object.values(
+                  newClassPropertiesMap[classID]["external"]
+                );
+                newClassPropertiesMap[classID]["externalSorted"] =
+                  externalPropertiesArray.sort((a, b) => {
+                    return that.properties[a].label.toLowerCase() >
+                      that.properties[b].label.toLowerCase()
+                      ? 1
+                      : -1;
+                  });
               }
             });
             var existingGeneralPropertyIDs = [];
@@ -919,14 +936,26 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
             });
 
             // Create alphabetically sorted (by property label) arrays as well.
-            let generalPropertiesArray = Object.values(newOtherPropertiesMap["general"]);
-            newOtherPropertiesMap["generalSorted"] = generalPropertiesArray.sort((a, b) => {
-            	return that.properties[a].label.toLowerCase() > that.properties[b].label.toLowerCase() ? 1 : -1;
-            });
-            let externalPropertiesArray = Object.values(newOtherPropertiesMap["external"]);
-            newOtherPropertiesMap["externalSorted"] = externalPropertiesArray.sort((a, b) => {
-            	return that.properties[a].label.toLowerCase() > that.properties[b].label.toLowerCase() ? 1 : -1;
-            });
+            let generalPropertiesArray = Object.values(
+              newOtherPropertiesMap["general"]
+            );
+            newOtherPropertiesMap["generalSorted"] =
+              generalPropertiesArray.sort((a, b) => {
+                return that.properties[a].label.toLowerCase() >
+                  that.properties[b].label.toLowerCase()
+                  ? 1
+                  : -1;
+              });
+            let externalPropertiesArray = Object.values(
+              newOtherPropertiesMap["external"]
+            );
+            newOtherPropertiesMap["externalSorted"] =
+              externalPropertiesArray.sort((a, b) => {
+                return that.properties[a].label.toLowerCase() >
+                  that.properties[b].label.toLowerCase()
+                  ? 1
+                  : -1;
+              });
 
             var allQualifiers = new Set();
             var allEntityIDs = new Set();
@@ -1051,8 +1080,16 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
               that.$forceUpdate();
             });
           },
-          comboboxOnSelect: function (value) {
-            let selectedValue = value;
+          comboboxOnSelect: function (event, propID, statementIdx) {
+            const selectedEntityId = event.searchResult.value;
+            // this.newStatementsMap[propID][statementIdx].mainsnak.datavalue = {
+            //   'entity-type': 'item',
+            //   'numeric-id': statementIdx,
+            //   'id': selectedEntityId
+            // };
+            console.log(
+              selectedEntityId + " should be added as a value to " + propID
+            );
           },
         },
         resetOptions: function (event) {
