@@ -4,6 +4,8 @@ messages = {
     "fields-for-class-title": "Fields for class",
     "other-fields-title": "Other fields",
     "external-ids-title": "External ID(s)",
+    "ids-for-class-title": "IDs for class",
+    "other-ids-title": "Other IDs",
   },
 };
 
@@ -663,7 +665,9 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
           return {
             name: "SimplyEdit",
             classDivStyle:
-              "border-style:solid; width: 80%; border-width:0.5px; padding: 0 1rem 1rem 1rem; margin-top: 1rem;background: aliceblue;",
+              "border: 1px solid #b0b8bf; width: 80%; padding: 0 1rem 1rem 1rem; margin-top: 1rem; background: aliceblue;",
+            externalIDDivStyle:
+              "font-size: 14px; border: 1px solid #aaa; width: 80%; padding: 0 1rem 1rem 1rem; margin-top: 1rem; background: #f5f5f5;",
             classHeaderStyle: "font-size: 15px;font-weight: bold;",
             qualifierLabelStyle: "font-size: 12px; text-decoration: italic;",
             valueTagStyle:
@@ -689,8 +693,8 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
         <div>
           <cdx-progress-bar style="margin-top: 30px; width: 80%" v-if="progress" aria--label="ProgressBar"></cdx-progress-bar>
           <template v-if="!progress" v-for="classID in classIDs">
-            <cdx-accordion v-if="classPropertiesMap[classID]['general'].length > 0 || classPropertiesMap[classID]['external'].length > 0" :style="classDivStyle">
-              <template #title>{{mw.msg('fields-for-class-title')}} <a :href=getWikibaseURL(classID) target="_blank">{{classLabels[classID]}}</a></template>
+            <div v-if="classPropertiesMap[classID]['general'].length > 0" :style="classDivStyle">
+              <h2>{{mw.msg('fields-for-class-title')}} <a :href=getWikibaseURL(classID) target="_blank">{{classLabels[classID]}}</a></h2>
               <cdx-field style="max-width: max-content;" v-for="propID in classPropertiesMap[classID]['generalSorted']">
                 <template #label>
                   {{properties[propID].label}}
@@ -728,30 +732,10 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
                 </div>
                 <span :style="valueTagStyle" v-for="(statement, idx) in statementsMap[propID]" :key="idx" v-html="parseValue(statement)"></span>
               </cdx-field>
-              <br>
-              <cdx-accordion style="background: white; border: 1px solid #ccc;" v-if="classPropertiesMap[classID]['external'].length > 0">
-                <template #title>{{mw.msg('external-ids-title')}}</template>
-                <cdx-field style="width: max-content;" v-for="propID in classPropertiesMap[classID]['externalSorted']">
-                  <template #label>
-                     {{properties[propID].label}}
-                    <cdx-button @click="addNewValue(propID)">+</cdx-button>
-                  </template>
-                  <div style="width: max-content;" v-for="(statement, idx) in newStatementsMap[propID]" :key="idx" style="display: flex; flex-direction: row;">
-                    <cdx-text-input
-                      v-if="statement.mainsnak.snaktype !== 'novalue'"
-                      v-model="statement.mainsnak.datavalue.value"
-                    ></cdx-text-input>
-                    <cdx-button v-if="!(statement.references || statement.qualifiers) && (statement.mainsnak.snaktype !== 'novalue')" action="destructive" weight="quiet" @click="deleteValue(idx, propID)">X</cdx-button>
-                  </div>
-                  <span :style="valueTagStyle" v-for="(statement, idx) in statementsMap[propID]" :key="idx">
-                  {{parseValue(statement)}}
-                  </span>
-                </cdx-field>
-              </cdx-accordion>
-            </cdx-accordion>
+            </div>
           </template>
-          <cdx-accordion :style="classDivStyle" v-if="!progress && (otherPropertiesMap['general'].length > 0 || otherPropertiesMap['external'].length > 0)">
-            <template #title>{{mw.msg('other-fields-title')}}</template>
+          <div :style="classDivStyle" v-if="!progress && otherPropertiesMap['general'].length > 0">
+            <h2>{{mw.msg('other-fields-title')}}</h2>
             <cdx-field style="width: 80%;" v-for="propID in otherPropertiesMap['generalSorted']">
               <template #label>
                 {{properties[propID].label}}
@@ -789,9 +773,33 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
               </div>
               <span :style="valueTagStyle" v-for="(statement, idx) in statementsMap[propID]" :key="idx"  v-html="parseValue(statement)"></span>
             </cdx-field>
-            <br>
-            <cdx-accordion style="background: white; border: 1px solid #ccc;" v-if="otherPropertiesMap['external'].length > 0">
-              <template #title>{{mw.msg('external-ids-title')}}</template>
+          </div>
+          <br>
+          <cdx-accordion style="background: white; border: 1px solid #ccc;" v-if="!progress">
+            <template #title>{{mw.msg('external-ids-title')}}</template>
+            <template v-if="!progress" v-for="classID in classIDs">
+            <div :style="externalIDDivStyle" v-if="classPropertiesMap[classID]['external'].length > 0">
+              <h2>{{mw.msg('ids-for-class-title')}} <a :href=getWikibaseURL(classID) target="_blank">{{classLabels[classID]}}</a></h2>
+                <cdx-field style="width: max-content;" v-for="propID in classPropertiesMap[classID]['externalSorted']">
+                  <template #label>
+                     {{properties[propID].label}}
+                    <cdx-button @click="addNewValue(propID)">+</cdx-button>
+                  </template>
+                  <div style="width: max-content;" v-for="(statement, idx) in newStatementsMap[propID]" :key="idx" style="display: flex; flex-direction: row;">
+                    <cdx-text-input
+                      v-if="statement.mainsnak.snaktype !== 'novalue'"
+                      v-model="statement.mainsnak.datavalue.value"
+                    ></cdx-text-input>
+                    <cdx-button v-if="!(statement.references || statement.qualifiers) && (statement.mainsnak.snaktype !== 'novalue')" action="destructive" weight="quiet" @click="deleteValue(idx, propID)">X</cdx-button>
+                  </div>
+                  <span :style="valueTagStyle" v-for="(statement, idx) in statementsMap[propID]" :key="idx">
+                  {{parseValue(statement)}}
+                  </span>
+                </cdx-field>
+            </div>
+            </template>
+            <div :style="externalIDDivStyle" v-if="otherPropertiesMap['external'].length > 0">
+              <h2>{{mw.msg('other-ids-title')}}</h2>
               <cdx-field style="width: max-content;" v-for="propID in otherPropertiesMap['externalSorted']">
                 <template #label>
                   {{properties[propID].label}}
@@ -808,7 +816,7 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
                   {{parseValue(statement)}}
                 </span>
               </cdx-field>
-            </cdx-accordion>
+            </div>
           </cdx-accordion>
           <br>
           <cdx-button action="progressive" weight="primary" v-if="!progress" @click="submitChanges">
