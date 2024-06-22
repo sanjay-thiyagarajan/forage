@@ -1086,14 +1086,11 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
           },
           comboboxOnSelect: function (event, propID, statementIdx) {
             const selectedEntityId = event.searchResult.value;
-            // this.newStatementsMap[propID][statementIdx].mainsnak.datavalue = {
-            //   'entity-type': 'item',
-            //   'numeric-id': statementIdx,
-            //   'id': selectedEntityId
-            // };
-            console.log(
-              selectedEntityId + " should be added as a value to " + propID
-            );
+            this.newStatementsMap[propID][statementIdx].mainsnak.datavalue.value = {
+              'entity-type': 'item',
+              'numeric-id': statementIdx,
+              'id': selectedEntityId
+            };
           },
         },
         resetOptions: function (event) {
