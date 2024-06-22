@@ -616,9 +616,13 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
             var labels = {};
             Object.keys(props).forEach(function (idx) {
               var prop = props[idx];
-              labels[prop.id] = prop.labels[lang]
-                ? prop.labels[lang].value
-                : prop.labels["en"].value;
+              if (prop.labels[lang]) {
+              	labels[prop.id] = prop.labels[lang].value
+              } else if (lang != "en" && prop.labels["en"] ) {
+                labels[prop.id] = prop.labels["en"].value;
+              } else {
+                labels[prop.id] = idx;
+              }
             });
 
             return { propIDLabelMap: labels };
