@@ -441,39 +441,6 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
         );
       }
 
-      function submitChanges() {
-        const entityID = mw.config.get("wbEntityId");
-        console.log(mw.config);
-        console.log("Claims to remove: ", newStatementsMap);
-        var api = new mw.Api();
-        var requestParams = {
-          action: "wbcreateclaim",
-          format: "json",
-          entity: entityID,
-          snaktype: "value",
-        };
-        const propertyIDs = Object.keys(newStatementsMap).filter(function (
-          propID
-        ) {
-          return newStatementsMap[propID].length > 0;
-        });
-        if (propertyIDs.length > 0) {
-          console.log(newStatementsMap);
-          // var promises = propertyIDs.map(function(propID){
-          //   newStatementsMap[propID].map(function(statement){
-
-          //   });
-          //   return api.get(
-          //     $.extend({}, requestParams, { property: propID, value: newStatementsMap[propID] })
-          //   );
-          // });
-        }
-        // var resp = api.get(requestParams);
-        // resp.done(function(){
-        //   location.reload();
-        // });
-      }
-
       function parseTimeValue(timeValue) {
         var timeString = timeValue.time.replace("+", "");
         var precision = timeValue.precision;
@@ -694,13 +661,28 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
             mw,
             allPropIDLabelsMap,
             deleteValue,
-            submitChanges,
             parseValue,
+            message: {
+              show: false,
+              state: 'success',
+              text: ''
+            }
           };
         },
         template: `
         <div>
           <cdx-progress-bar style="margin-top: 30px; width: 80%" v-if="progress" aria--label="ProgressBar"></cdx-progress-bar>
+          <cdx-message
+            v-if="message.show"
+            type="message.state"
+            dismiss-button-label="Close"
+            :fade-in="true"
+            :auto-dismiss="true"
+            :display-time="3000"
+            style="position: fixed; right: 2%;"
+          >
+            {{message.text}}
+          </cdx-message>
           <template v-if="!progress" v-for="classID in classIDs">
             <div v-if="classPropertiesMap[classID]['general'].length > 0" :style="classDivStyle">
               <h2>{{mw.msg('fields-for-class-title')}} <a :href=getWikibaseURL(classID) target="_blank">{{classLabels[classID]}}</a></h2>
@@ -738,6 +720,7 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
                     input-type="datetime-local"
                   ></cdx-text-input>
                   <cdx-button v-if="!(statement.references || statement.qualifiers) && (statement.mainsnak.snaktype !== 'novalue')" action="destructive" weight="quiet" @click="deleteValue(idx, propID)">X</cdx-button>
+                  <cdx-button action="progressive" weight="primary" @click="submitChanges($event, propID, idx)"> ✔ Publish</cdx-button>
                 </div>
                 <span :style="valueTagStyle" v-for="(statement, idx) in statementsMap[propID]" :key="idx" v-html="parseValue(statement)"></span>
               </cdx-field>
@@ -779,6 +762,7 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
                   input-type="datetime-local"
                 ></cdx-text-input>
                 <cdx-button v-if="!(statement.references || statement.qualifiers) && (statement.mainsnak.snaktype !== 'novalue')" action="destructive" weight="quiet" @click="deleteValue(idx, propID)">X</cdx-button>
+                <cdx-button action="progressive" weight="primary" @click="submitChanges($event, propID, idx)"> ✔ Publish</cdx-button>
               </div>
               <span :style="valueTagStyle" v-for="(statement, idx) in statementsMap[propID]" :key="idx"  v-html="parseValue(statement)"></span>
             </cdx-field>
@@ -800,6 +784,7 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
                       v-model="statement.mainsnak.datavalue.value"
                     ></cdx-text-input>
                     <cdx-button v-if="!(statement.references || statement.qualifiers) && (statement.mainsnak.snaktype !== 'novalue')" action="destructive" weight="quiet" @click="deleteValue(idx, propID)">X</cdx-button>
+                    <cdx-button action="progressive" weight="primary" @click="submitChanges($event, propID, idx)"> ✔ Publish</cdx-button>
                   </div>
                   <span :style="valueTagStyle" v-for="(statement, idx) in statementsMap[propID]" :key="idx">
                   {{parseValue(statement)}}
@@ -820,6 +805,7 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
                     v-model="statement.mainsnak.datavalue.value"
                   ></cdx-text-input>
                   <cdx-button v-if="!(statement.references || statement.qualifiers) && (statement.mainsnak.snaktype !== 'novalue')" action="destructive" weight="quiet" @click="deleteValue(idx, propID)">X</cdx-button>
+                  <cdx-button action="progressive" weight="primary" @click="submitChanges($event, propID, idx)"> ✔ Publish</cdx-button>
                 </div>
                 <span :style="valueTagStyle" v-for="(statement, idx) in statementsMap[propID]" :key="idx">
                   {{parseValue(statement)}}
@@ -827,10 +813,6 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
               </cdx-field>
             </div>
           </cdx-accordion>
-          <br>
-          <cdx-button action="progressive" weight="primary" v-if="!progress" @click="submitChanges">
-            Submit changes
-          </cdx-button>
         </div>
 		  `,
         mounted() {
@@ -1089,9 +1071,51 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
             this.newStatementsMap[propID][statementIdx].mainsnak.datavalue.value = {
               'entity-type': 'item',
               'numeric-id': statementIdx,
-              'id': selectedEntityId
+              'id': selectedEntityId,
+              'label': event.searchResult.label
             };
           },
+          submitChanges: async function(event, propID, statementIdx) {
+            event.target.disabled = true;
+            const entityID = mw.config.get("wbEntityId");
+            var api = new mw.Api();
+            // Fetch CSRF token
+            var requestParams = {
+              action: "query",
+              meta: "tokens",
+              format: "json"
+            };
+            const tokenResponse = await api.get(requestParams);
+            let dataValue = Vue.toRaw(this.newStatementsMap[propID][statementIdx].mainsnak.datavalue.value);
+            const dataLabel = dataValue.label ? dataValue.label : null;
+            const dataID = dataValue.id ? dataValue.id : null;
+            requestParams = {
+              action: "wbcreateclaim",
+              format: "json",
+              entity: entityID,
+              snaktype: "value",
+              property: propID,
+              value: JSON.stringify(dataValue),
+              token: tokenResponse.query.tokens.csrftoken
+            };
+            const response = await api.post(requestParams);
+            event.target.disabled = false;
+            if(response.success){
+              if(dataLabel !== null && dataID !== null){
+                this.allPropIDLabelsMap[dataID] = dataLabel;
+              }
+              this.statementsMap[propID].unshift(response.claim);
+              this.newStatementsMap[propID].splice(statementIdx, 1);
+              this.message.state = 'success';
+              this.message.text = 'Successfully added the new claim';
+              this.message.show = true;
+            } else if(response.error){
+              console.error(resonse.error.code);
+              this.message.state = 'error';
+              this.message.text = 'Error saving the new claim: ' + response.error.code;
+              this.message.show = true;
+            }
+          }
         },
         resetOptions: function (event) {
           this.autocompleteItems = [];
@@ -1104,6 +1128,7 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
         .component("cdx-progress-bar", Codex.CdxProgressBar)
         .component("cdx-text-input", Codex.CdxTextInput)
         .component("cdx-accordion", Codex.CdxAccordion)
+        .component("cdx-message", Codex.CdxMessage)
         .mount("#mw-content-text");
     }
   }
