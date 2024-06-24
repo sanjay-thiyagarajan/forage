@@ -100,12 +100,12 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
 
         const requestParams = {
           action: "wbgetentities",
-          format: "json",
           ids: newIds,
-          languages: lang + "|en",
+          props: "claims",
+          format: "json",
         };
         try {
-          const res = await api.get($.extend({}, requestParams));
+          const res = await api.get(requestParams);
           var parentIDs = new Set();
           for (const itemID of newIds) {
             if (res.entities[itemID].claims[subClassOfID] !== undefined) {
@@ -149,8 +149,9 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
             return new Promise(function (innerResolve, innerReject) {
               var requestParams = {
                 action: "wbgetentities",
-                format: "json",
                 ids: instanceBatch,
+                props: "claims",
+                format: "json",
               };
               let typesResponse = api.get(requestParams);
               typesResponse.done(function (res) {
@@ -217,9 +218,10 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
               return new Promise(async function (innerResolve, innerReject) {
                 var requestParams = {
                   action: "wbgetentities",
-                  format: "json",
                   ids: curPropertyIDsBatch,
+                  props: "labels",
                   languages: lang + "|en",
+                  format: "json",
                 };
 
                 var result = await api.get(requestParams);
@@ -265,6 +267,8 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
         var lang = mw.config.get("wgUserLanguage");
         var requestParams = {
           action: "wbgetentities",
+          props: "labels",
+          languages: lang + "|en",
           format: "json",
         };
         // Group properties into batches of 50 or fewer
@@ -280,7 +284,6 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
             // Fetch labels for the current batch of properties
             var labelsResponse = api.get(
               $.extend({}, requestParams, {
-                props: "labels",
                 ids: propertyBatchIDs,
               })
             );
@@ -337,8 +340,9 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
         var lang = mw.config.get("wgUserLanguage");
         var requestParams = {
           action: "wbgetentities",
-          format: "json",
+          props: "labels",
           languages: lang + "|en",
+          format: "json",
         };
         var batchSize = 50; // Maximum number of IDs per request
         var chunks = [];
@@ -354,7 +358,7 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
         // Create promises for each chunk and make asynchronous requests
         var promises = chunks.map(function (chunk) {
           var labelsResponse = api.get(
-            $.extend({}, requestParams, { props: "labels", ids: chunk })
+            $.extend({}, requestParams, { ids: chunk })
           );
           return labelsResponse.then(function (res) {
             var props = res.entities;
@@ -565,6 +569,8 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
         var chunks = [];
         var requestParams = {
           action: "wbgetentities",
+          props: "labels",
+          languages: lang + "|en",
           format: "json",
         };
         var i, j;
@@ -576,7 +582,7 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
         // Create promises for each chunk and make asynchronous requests
         var promises = chunks.map(function (chunk) {
           var labelsResponse = api.get(
-            $.extend({}, requestParams, { props: "labels", ids: chunk })
+            $.extend({}, requestParams, { ids: chunk })
           );
           return labelsResponse.then(function (res) {
             var props = res.entities;
@@ -827,8 +833,9 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
           var api = new mw.Api();
           var requestParams = {
             action: "wbgetentities",
-            format: "json",
             ids: itemID,
+            props: "claims",
+            format: "json",
           };
 
           var result = api.get(requestParams);
@@ -1057,7 +1064,7 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
               type: "item",
               limit: 20,
             };
-            var values = api.get($.extend({}, requestParams, {}));
+            var values = api.get(requestParams);
             const that = this;
             values.done(function (data) {
               // If there are results, format them into an array of
