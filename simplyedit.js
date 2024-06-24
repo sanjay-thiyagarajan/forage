@@ -620,11 +620,11 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
        * For each unit used on this page, get its label and replace the (hacky) HTML
        * tag created for it with the label.
        */
-      function replaceUnitIDsWithLabels() {	
+      function replaceUnitIDsWithLabels() {
       	if (allUnitIDs.size == 0) {
       		return;
       	}
-      	
+
         var api = new mw.Api();
         var lang = mw.config.get("wgUserLanguage");
         var requestParams = {
