@@ -156,7 +156,6 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
               let typesResponse = api.get(requestParams);
               typesResponse.done(function (res) {
                 let entities = res.entities;
-                let typePropertyMap = {};
                 let allPropIDs = new Set();
                 classIDBatch.forEach(function (classID) {
                   let curClass = entities[classID];
@@ -174,7 +173,6 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
                         return;
                       }
                       propertiesForClasses[classID].push(propertyID);
-                      typePropertyMap[propertyID] = classID;
                       allPropIDs.add(propertyID);
                     });
                   }
