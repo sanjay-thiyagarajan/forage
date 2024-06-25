@@ -31,7 +31,7 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
   var allClassLabels = {};
   var statementsToCreate = [];
   var propertiesForClasses = {};
-  var instancesOf = [];
+  var parentClassIDs = [];
   var allPropIDLabelsMap = {
     "": "",
   };
@@ -65,15 +65,15 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
       });
       $("#ca-edit-entity").addClass("selected");
 
-      // Function to retrieve instance of properties
-      function getInstanceOfProperties(entity) {
-        var instancesOf = [];
+      // Function to retrieve parent classes, via the "instance of" property
+      function getParentClassIDs(entity) {
+        var entityParentClassIDs = [];
         if (entity.claims[instanceOfItemID]) {
           entity.claims[instanceOfItemID].forEach(function (val) {
-            instancesOf.push(val.mainsnak.datavalue.value.id);
+            entityParentClassIDs.push(val.mainsnak.datavalue.value.id);
           });
         }
-        return instancesOf;
+        return entityParentClassIDs;
       }
 
       // Function to retrieve values map
@@ -85,13 +85,13 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
         });
       }
 
-      async function getParentClasses(instancesOf) {
-        if (instancesOf.length === 0) {
+      async function getParentClasses(parentClassIDs) {
+        if (parentClassIDs.length === 0) {
           return [];
         }
 
-        let newIds = instancesOf.filter(function (val) {
-          return !classIDList.includes(val);
+        let newIds = parentClassIDs.filter(function (classID) {
+          return !classIDList.includes(classID);
         });
 
         classIDList = classIDList.concat(newIds);
@@ -140,16 +140,16 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
       function retrieveClassProperties(
         api,
         requestParams,
-        instancesOf,
+        parentClassIDs,
         entity
       ) {
         return new Promise(async function (resolve, reject) {
-          var instanceOfBatches = chunkArray(instancesOf, 50);
-          var promises = instanceOfBatches.map(function (instanceBatch) {
+          var parentClassIDBatches = chunkArray(parentClassIDs, 50);
+          var promises = parentClassIDBatches.map(function (classIDBatch) {
             return new Promise(function (innerResolve, innerReject) {
               var requestParams = {
                 action: "wbgetentities",
-                ids: instanceBatch,
+                ids: classIDBatch,
                 props: "claims",
                 format: "json",
               };
@@ -158,23 +158,23 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
                 let entities = res.entities;
                 let typePropertyMap = {};
                 let allPropIDs = new Set();
-                instanceBatch.forEach(function (instance) {
-                  let et = entities[instance];
-                  if (!propertiesForClasses[instance]) {
-                    propertiesForClasses[instance] = [];
+                classIDBatch.forEach(function (classID) {
+                  let curClass = entities[classID];
+                  if (!propertiesForClasses[classID]) {
+                    propertiesForClasses[classID] = [];
                   }
-                  if (et.claims[propertiesForTypeID]) {
-                    et.claims[propertiesForTypeID].forEach(function (val) {
-                      var snakType = val.mainsnak.snaktype;
+                  if (curClass.claims[propertiesForTypeID]) {
+                    curClass.claims[propertiesForTypeID].forEach(function (curProperty) {
+                      var snakType = curProperty.mainsnak.snaktype;
                       if (snakType == "novalue" || snakType == "somevalue") {
                         return;
                       }
-                      let propertyID = val.mainsnak.datavalue.value.id;
+                      let propertyID = curProperty.mainsnak.datavalue.value.id;
                       if (allPropIDs.has(propertyID)) {
                         return;
                       }
-                      propertiesForClasses[instance].push(propertyID);
-                      typePropertyMap[propertyID] = instance;
+                      propertiesForClasses[classID].push(propertyID);
+                      typePropertyMap[propertyID] = classID;
                       allPropIDs.add(propertyID);
                     });
                   }
@@ -189,7 +189,7 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
                 retrieveLabels(
                   api,
                   propertyIDsForCurrentClassBatch,
-                  instanceBatch
+                  classIDBatch
                 ).then(function (labelsResult) {
                   allProperties = allProperties.concat(
                     labelsResult.allProperties
@@ -263,7 +263,7 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
         });
       }
 
-      function fetchPropertyLabels(api, properties, instancesOf) {
+      function fetchPropertyLabels(api, properties, classIDs) {
         var lang = mw.config.get("wgUserLanguage");
         var requestParams = {
           action: "wbgetentities",
@@ -288,24 +288,24 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
               })
             );
             return labelsResponse.then(function (res) {
-              var props = res.entities;
+              var allItemData = res.entities;
               var properties = [];
               var classLabelsBatch = {};
               // Process each property in the batch
               propertyBatchIDs.forEach(function (propID) {
-                var prop = props[propID];
-                if (prop) {
-                  if (instancesOf.indexOf(prop.id) === -1) {
+                var curItemData = allItemData[propID];
+                if (curItemData) {
+                  if (classIDs.indexOf(curItemData.id) === -1) {
                     properties.push({
-                      id: prop.id,
-                      datatype: prop.datatype,
-                      label: prop.labels[lang]
-                        ? prop.labels[lang].value
-                        : prop.labels["en"].value,
+                      id: curItemData.id,
+                      datatype: curItemData.datatype,
+                      label: curItemData.labels[lang]
+                        ? curItemData.labels[lang].value
+                        : curItemData.labels["en"].value,
                     });
                   } else {
-                    classLabelsBatch[prop.id] = prop.labels[lang]
-                      ? prop.labels[lang].value
+                    classLabelsBatch[curItemData.id] = curItemData.labels[lang]
+                      ? curItemData.labels[lang].value
                       : "";
                   }
                 }
@@ -336,7 +336,7 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
       }
 
       // Function to retrieve labels from Wikidata API
-      async function retrieveLabels(api, propertyIDs, instancesOf) {
+      async function retrieveLabels(api, propertyIDs, classIDs) {
         var lang = mw.config.get("wgUserLanguage");
         var requestParams = {
           action: "wbgetentities",
@@ -348,12 +348,12 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
         var chunks = [];
         var i, j;
 
-        // Split propertyIDs and instancesOf into chunks of batchSize
+        // Split property and class IDs into chunks of batchSize
         for (i = 0, j = propertyIDs.length; i < j; i += batchSize) {
           chunks.push(propertyIDs.slice(i, i + batchSize));
         }
-        for (i = 0, j = instancesOf.length; i < j; i += batchSize) {
-          chunks.push(instancesOf.slice(i, i + batchSize));
+        for (i = 0, j = classIDs.length; i < j; i += batchSize) {
+          chunks.push(classIDs.slice(i, i + batchSize));
         }
         // Create promises for each chunk and make asynchronous requests
         var promises = chunks.map(function (chunk) {
@@ -361,25 +361,25 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
             $.extend({}, requestParams, { ids: chunk })
           );
           return labelsResponse.then(function (res) {
-            var props = res.entities;
+            var allItemData = res.entities;
             var properties = [];
             var classLabels = {};
-            Object.keys(props).forEach(function (idx) {
-              var prop = props[idx];
-              if (instancesOf.indexOf(prop.id) === -1) {
+            Object.keys(allItemData).forEach(function (itemID) {
+              var curItemData = allItemData[itemID];
+              if (classIDs.indexOf(curItemData.id) === -1) {
                 properties.push({
-                  id: prop.id,
-                  datatype: prop.datatype,
-                  label: prop.labels[lang]
-                    ? prop.labels[lang].value
-                    : prop.labels["en"].value,
+                  id: curItemData.id,
+                  datatype: curItemData.datatype,
+                  label: curItemData.labels[lang]
+                    ? curItemData.labels[lang].value
+                    : curItemData.labels["en"].value,
                 });
               } else {
-                classLabels[prop.id] = prop.labels[lang]
-                  ? prop.labels[lang].value
+                classLabels[curItemData.id] = curItemData.labels[lang]
+                  ? curItemData.labels[lang].value
                   : "";
               }
-              propertyDatatypeMap[prop.id] = prop.datatype;
+              propertyDatatypeMap[curItemData.id] = curItemData.datatype;
             });
 
             return { properties: properties, classLabels: classLabels };
@@ -585,16 +585,16 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
             $.extend({}, requestParams, { ids: chunk })
           );
           return labelsResponse.then(function (res) {
-            var props = res.entities;
+            var allItemData = res.entities;
             var labels = {};
-            Object.keys(props).forEach(function (idx) {
-              var prop = props[idx];
-              if (prop.labels[lang]) {
-              	labels[prop.id] = prop.labels[lang].value
-              } else if (lang != "en" && prop.labels["en"] ) {
-                labels[prop.id] = prop.labels["en"].value;
+            Object.keys(allItemData).forEach(function (itemID) {
+              var curItemData = allItemData[itemID];
+              if (curItemData.labels[lang]) {
+              	labels[curItemData.id] = curItemData.labels[lang].value
+              } else if (lang != "en" && curItemData.labels["en"] ) {
+                labels[curItemData.id] = curItemData.labels["en"].value;
               } else {
-                labels[prop.id] = idx;
+                labels[curItemData.id] = itemID;
               }
             });
 
@@ -842,8 +842,8 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
           const that = this;
           result.done(async function (res) {
             var entity = res.entities[itemID];
-            instancesOf = getInstanceOfProperties(entity);
-            await getParentClasses(instancesOf);
+            parentClassIDs = getParentClassIDs(entity);
+            await getParentClasses(parentClassIDs);
             that.classIDs = classIDList;
             await retrieveClassProperties(
               api,
@@ -1064,9 +1064,9 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
               type: "item",
               limit: 20,
             };
-            var values = api.get(requestParams);
+            var valuesResponse = api.get(requestParams);
             const that = this;
-            values.done(function (data) {
+            valuesResponse.done(function (data) {
               // If there are results, format them into an array of
               // SearchResults to be passed into TypeaheadSearch for
               // display as a menu of search results.
