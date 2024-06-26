@@ -261,7 +261,7 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
         });
       }
 
-      function fetchPropertyLabels(api, properties, classIDs) {
+      function fetchPropertyLabels(api, properties) {
         var lang = mw.config.get("wgUserLanguage");
         var requestParams = {
           action: "wbgetentities",
@@ -290,27 +290,18 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
               var properties = [];
               var classLabelsBatch = {};
               // Process each property in the batch
-              propertyBatchIDs.forEach(function (propID) {
-                var curItemData = allItemData[propID];
-                if (curItemData) {
-                  if (classIDs.indexOf(curItemData.id) === -1) {
-                    properties.push({
-                      id: curItemData.id,
-                      datatype: curItemData.datatype,
-                      label: curItemData.labels[lang]
-                        ? curItemData.labels[lang].value
-                        : curItemData.labels["en"].value,
-                    });
-                  } else {
-                    classLabelsBatch[curItemData.id] = curItemData.labels[lang]
-                      ? curItemData.labels[lang].value
-                      : "";
-                  }
-                }
+              Object.keys(allItemData).forEach(function (itemID) {
+              	var curItemData = allItemData[itemID];
+              	properties.push({
+              		id: curItemData.id,
+              		datatype: curItemData.datatype,
+              		label: curItemData.labels[lang]
+              		? curItemData.labels[lang].value
+              		: curItemData.labels["en"].value,
+              	});
               });
               return {
                 properties: properties,
-                classLabelsBatch: classLabelsBatch,
               };
             });
           });
@@ -850,7 +841,7 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
               entity
             );
             that.classLabels = allClassLabels;
-            await fetchPropertyLabels(api, allProperties, classIDList);
+            await fetchPropertyLabels(api, allProperties);
             that.properties = {};
             allPropertyLabels.forEach(function (obj) {
               that.properties[obj.id] = obj;
