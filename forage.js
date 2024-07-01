@@ -984,15 +984,6 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
             var wbrepo = mw.config.get("wbRepo");
             return wbrepo.url + wbrepo.articlePath.replace("$1", id);
           },
-          parseDateTime: function (timeString) {
-            const cleanDateTime = timeString.slice(1, -1);
-            const parsedDate = new Date(cleanDateTime);
-            const localDateTime = new Date(
-              parsedDate.getTime() - parsedDate.getTimezoneOffset() * 60000
-            );
-            const formattedDateTime = localDateTime.toISOString().slice(0, 19);
-            return formattedDateTime;
-          },
           addNewValue: function (propID) {
             const propDataType = propertyDatatypeMap[propID];
             var statement = {
