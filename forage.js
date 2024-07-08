@@ -687,7 +687,8 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
               <h2>{{mw.msg('fields-for-class-title')}} <a :href=getWikibaseURL(classID) target="_blank">{{classLabels[classID]}}</a></h2>
               <cdx-field style="max-width: max-content;" v-for="propID in classPropertiesMap[classID]['generalSorted']">
                 <template #label>
-                  {{properties[propID].label}}
+                  <a :href=getWikibasePropertyURL(propID) target="_blank">{{properties[propID].label}}</a>
+		  &nbsp;
                   <cdx-button @click="addNewValue(propID)">+</cdx-button>
                 </template>
                 <div style="width: max-content;" v-for="(statement, idx) in newStatementsMap[propID]" :key="idx" style="display: flex; flex-direction: row;">
@@ -729,7 +730,8 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
             <h2>{{mw.msg('other-fields-title')}}</h2>
             <cdx-field style="width: 80%;" v-for="propID in otherPropertiesMap['generalSorted']">
               <template #label>
-                {{properties[propID].label}}
+                <a :href=getWikibasePropertyURL(propID) target="_blank">{{properties[propID].label}}</a>
+		&nbsp;
                 <cdx-button @click="addNewValue(propID)">+</cdx-button>
               </template>
               <div style="width: max-content;" v-for="(statement, idx) in newStatementsMap[propID]" :key="idx" style="display: flex; flex-direction: row;">
@@ -774,7 +776,8 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
               <h2>{{mw.msg('ids-for-class-title')}} <a :href=getWikibaseURL(classID) target="_blank">{{classLabels[classID]}}</a></h2>
                 <cdx-field style="width: max-content;" v-for="propID in classPropertiesMap[classID]['externalSorted']">
                   <template #label>
-                     {{properties[propID].label}}
+                     <a :href=getWikibasePropertyURL(propID) target="_blank">{{properties[propID].label}}</a>
+		     &nbsp;
                     <cdx-button @click="addNewValue(propID)">+</cdx-button>
                   </template>
                   <div style="width: max-content;" v-for="(statement, idx) in newStatementsMap[propID]" :key="idx" style="display: flex; flex-direction: row;">
@@ -795,7 +798,8 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
               <h2>{{mw.msg('other-ids-title')}}</h2>
               <cdx-field style="width: max-content;" v-for="propID in otherPropertiesMap['externalSorted']">
                 <template #label>
-                  {{properties[propID].label}}
+                  <a :href=getWikibasePropertyURL(propID) target="_blank">{{properties[propID].label}}</a>
+		  &nbsp;
                   <cdx-button @click="addNewValue(propID)">+</cdx-button>
                 </template>
                 <div style="width: max-content;" v-for="(statement, idx) in newStatementsMap[propID]" :key="idx" style="display: flex; flex-direction: row;">
@@ -984,6 +988,9 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
             var wbrepo = mw.config.get("wbRepo");
             return wbrepo.url + wbrepo.articlePath.replace("$1", id);
           },
+          getWikibasePropertyURL: function (propID) {
+            return this.getWikibaseURL("Property:" + propID)
+	  },
           addNewValue: function (propID) {
             const propDataType = propertyDatatypeMap[propID];
             var statement = {
