@@ -355,18 +355,22 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
             var classLabels = {};
             Object.keys(allItemData).forEach(function (itemID) {
               var curItemData = allItemData[itemID];
+              var curClassLabel;
+              if (curItemData.labels[lang]) {
+              	curClassLabel = curItemData.labels[lang].value;
+              } else if (lang !== "en" && curItemData.labels["en"]) {
+              	curClassLabel = curItemData.labels["en"].value;
+              } else {
+              	curClassLabel = curItemData.id;
+              }
               if (classIDs.indexOf(curItemData.id) === -1) {
                 properties.push({
                   id: curItemData.id,
                   datatype: curItemData.datatype,
-                  label: curItemData.labels[lang]
-                    ? curItemData.labels[lang].value
-                    : curItemData.labels["en"].value,
+                  label: curClassLabel,
                 });
               } else {
-                classLabels[curItemData.id] = curItemData.labels[lang]
-                  ? curItemData.labels[lang].value
-                  : "";
+                classLabels[curItemData.id] = curClassLabel;
               }
               propertyDatatypeMap[curItemData.id] = curItemData.datatype;
             });
