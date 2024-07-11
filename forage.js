@@ -449,11 +449,11 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
         // We really only worry about two precisions: full date (11) and year-only (9).
         // i.e., if it's not a full date, display a year.
         if (precision >= 11) {
+          var dateObj = new Date(timeString);
           var year = dateObj.getUTCFullYear();
           if (isBC) {
           	year = '-' + year;
           }
-          var dateObj = new Date(timeString);
           // @TODO Display the date in the way Wikibase does, with the month in the language of the user.
           var monthNum = dateObj.getUTCMonth() + 1;
           var dayNum = dateObj.getUTCDate();
