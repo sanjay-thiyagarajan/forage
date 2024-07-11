@@ -436,26 +436,41 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
 
       function parseTimeValue(timeValue) {
         var timeString = timeValue.time.replace("+", "");
+        var isBC = false;
+        if (timeString.startsWith('-')) {
+          isBC = true;
+          timeString = timeString.substring(1);
+        }
         var precision = timeValue.precision;
         // We really only worry about two precisions: full date (11) and year-only (9).
         // i.e., if it's not a full date, display a year.
         if (precision >= 11) {
+          var year = dateObj.getUTCFullYear();
+          if (isBC) {
+          	year = '-' + year;
+          }
           var dateObj = new Date(timeString);
           // @TODO Display the date in the way Wikibase does, with the month in the language of the user.
-          var monthNum = dateObj.getMonth() + 1;
-          var dayNum = dateObj.getDate() + 1;
+          var monthNum = dateObj.getUTCMonth() + 1;
+          var dayNum = dateObj.getUTCDate();
           return (
-            dateObj.getFullYear() +
-            "-" +
-            ("0" + monthNum).slice(-2) +
-            "-" +
+            year + "-" +
+            ("0" + monthNum).slice(-2) + "-" +
             ("0" + dayNum).slice(-2)
           );
         } else {
           // JS date parsing won't work on a date that looks like "YYYY-00-00",
           // so instead just get the first group of digits.
           var matches = timeString.match(/(\d+)/);
-          return matches[0];
+          // Remove trailing zeros, if it's a less-than-four-digit year.
+          var year = matches[0].replace(/^0+/,"");
+          if (isBC) {
+          	// @TODO - it would be good to instead display "BCE" here, or its equivalent in other
+          	// languages, but that requires access to the i18n message "wikibase-time-precision-BCE",
+          	// which we don't have.
+          	year = '-' + year;
+          }
+          return year;
         }
       }
 
