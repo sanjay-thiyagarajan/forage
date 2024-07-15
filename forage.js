@@ -288,7 +288,6 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
             return labelsResponse.then(function (res) {
               var allItemData = res.entities;
               var properties = [];
-              var classLabelsBatch = {};
               // Process each property in the batch
               Object.keys(allItemData).forEach(function (itemID) {
               	var curItemData = allItemData[itemID];
