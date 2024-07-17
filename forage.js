@@ -545,23 +545,22 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
 
         // If there's a time-based qualifier for this value, display that/those within parentheses.
         if (statement.qualifiers) {
-          if (statement.qualifiers[pointInTimeID]) {
+          var pointInTimeQualifiers = statement.qualifiers[pointInTimeID]
+          if (pointInTimeQualifiers && pointInTimeQualifiers[0].datavalue) {
             var pointInTime =
-              statement.qualifiers[pointInTimeID][0].datavalue.value;
-            str += " (" + parseTimeValue(pointInTime) + ")";
+              parseTimeValue(pointInTimeQualifiers[0].datavalue.value);
+            str += " (" + pointInTime + ")";
           } else if (
             statement.qualifiers[startTimeID] ||
             statement.qualifiers[endTimeID]
           ) {
-            var startTime = statement.qualifiers[startTimeID]
-              ? parseTimeValue(
-                  statement.qualifiers[startTimeID][0].datavalue.value
-                )
+            var startTimeQualifiers = statement.qualifiers[startTimeID];
+            var startTime = (startTimeQualifiers && startTimeQualifiers[0].datavalue)
+              ? parseTimeValue(startTimeQualifiers[0].datavalue.value)
               : "";
-            var endTime = statement.qualifiers[endTimeID]
-              ? parseTimeValue(
-                  statement.qualifiers[endTimeID][0].datavalue.value
-                )
+            var endTimeQualifiers = statement.qualifiers[endTimeID];
+            var endTime = (endTimeQualifiers && endTimeQualifiers[0].datavalue)
+              ? parseTimeValue(endTimeQualifiers[0].datavalue.value)
               : "";
             str += " (" + startTime + " - " + endTime + ")";
           }
