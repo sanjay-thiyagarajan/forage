@@ -1119,7 +1119,11 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
               if(dataLabel !== null && dataID !== null){
                 this.allPropIDLabelsMap[dataID] = dataLabel;
               }
-              this.statementsMap[propID].unshift(response.claim);
+              if (this.statementsMap[propID] == undefined) {
+                this.statementsMap[propID] = [response.claim];
+              } else {
+                this.statementsMap[propID].unshift(response.claim);
+              }
               this.newStatementsMap[propID].splice(statementIdx, 1);
               this.message.state = 'success';
               this.message.text = 'Successfully added the new claim';
