@@ -1122,7 +1122,7 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
               if (this.statementsMap[propID] == undefined) {
                 this.statementsMap[propID] = [response.claim];
               } else {
-                this.statementsMap[propID].unshift(response.claim);
+                this.statementsMap[propID].push(response.claim);
               }
               this.newStatementsMap[propID].splice(statementIdx, 1);
               this.message.state = 'success';
