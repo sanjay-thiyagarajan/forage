@@ -738,8 +738,8 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
                     v-model="statement.mainsnak.datavalue.value.time"
                     input-type="datetime-local"
                   ></cdx-text-input>
-                  <cdx-button v-if="!(statement.references || statement.qualifiers) && (statement.mainsnak.snaktype !== 'novalue')" action="destructive" weight="quiet" @click="deleteValue(idx, propID)">{{cancelMsg}}</cdx-button>
                   <cdx-button action="progressive" weight="primary" @click="submitChanges($event, propID, idx)">{{publishMsg}}</cdx-button>
+                  <cdx-button v-if="!(statement.references || statement.qualifiers) && (statement.mainsnak.snaktype !== 'novalue')" action="destructive" weight="quiet" @click="deleteValue(idx, propID)">{{cancelMsg}}</cdx-button>
                 </div>
                 <span :style="valueTagStyle" v-for="(statement, idx) in statementsMap[propID]" :key="idx" v-html="parseValue(statement)"></span>
               </cdx-field>
@@ -781,8 +781,8 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
                   v-model="statement.mainsnak.datavalue.value.time"
                   input-type="datetime-local"
                 ></cdx-text-input>
-                <cdx-button v-if="!(statement.references || statement.qualifiers) && (statement.mainsnak.snaktype !== 'novalue')" action="destructive" weight="quiet" @click="deleteValue(idx, propID)">{{cancelMsg}}</cdx-button>
                 <cdx-button action="progressive" weight="primary" @click="submitChanges($event, propID, idx)">{{publishMsg}}</cdx-button>
+                <cdx-button v-if="!(statement.references || statement.qualifiers) && (statement.mainsnak.snaktype !== 'novalue')" action="destructive" weight="quiet" @click="deleteValue(idx, propID)">{{cancelMsg}}</cdx-button>
               </div>
               <span :style="valueTagStyle" v-for="(statement, idx) in statementsMap[propID]" :key="idx"  v-html="parseValue(statement)"></span>
             </cdx-field>
@@ -804,8 +804,8 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
                       v-if="statement.mainsnak.snaktype !== 'novalue'"
                       v-model="statement.mainsnak.datavalue.value"
                     ></cdx-text-input>
-                    <cdx-button v-if="!(statement.references || statement.qualifiers) && (statement.mainsnak.snaktype !== 'novalue')" action="destructive" weight="quiet" @click="deleteValue(idx, propID)">{{cancelMsg}}</cdx-button>
                     <cdx-button action="progressive" weight="primary" @click="submitChanges($event, propID, idx)">{{publishMsg}}</cdx-button>
+                    <cdx-button v-if="!(statement.references || statement.qualifiers) && (statement.mainsnak.snaktype !== 'novalue')" action="destructive" weight="quiet" @click="deleteValue(idx, propID)">{{cancelMsg}}</cdx-button>
                   </div>
                   <span :style="valueTagStyle" v-for="(statement, idx) in statementsMap[propID]" :key="idx">
                   {{parseValue(statement)}}
@@ -826,8 +826,8 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
                     v-if="statement.mainsnak.snaktype !== 'novalue'"
                     v-model="statement.mainsnak.datavalue.value"
                   ></cdx-text-input>
-                  <cdx-button v-if="!(statement.references || statement.qualifiers) && (statement.mainsnak.snaktype !== 'novalue')" action="destructive" weight="quiet" @click="deleteValue(idx, propID)">{{cancelMsg}}</cdx-button>
                   <cdx-button action="progressive" weight="primary" @click="submitChanges($event, propID, idx)">{{publishMsg}}</cdx-button>
+                  <cdx-button v-if="!(statement.references || statement.qualifiers) && (statement.mainsnak.snaktype !== 'novalue')" action="destructive" weight="quiet" @click="deleteValue(idx, propID)">{{cancelMsg}}</cdx-button>
                 </div>
                 <span :style="valueTagStyle" v-for="(statement, idx) in statementsMap[propID]" :key="idx">
                   {{parseValue(statement)}}
