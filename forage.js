@@ -445,28 +445,38 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
           timeString = timeString.substring(1);
         }
         var precision = timeValue.precision;
-        // We really only worry about two precisions: full date (11) and year-only (9).
-        // i.e., if it's not a full date, display a year.
+        // We really only worry about three precisions: full date (11),
+        // year and month (10), and year-only (9) - if it's more precise
+        // than a date, just display the date, and if it's less precise
+        // than a year, just display whatever year was set.
         if (precision >= 11) {
-          var dateObj = new Date(timeString);
-          var year = dateObj.getUTCFullYear();
+          let dateObj = new Date(timeString);
+          let year = dateObj.getUTCFullYear();
           if (isBC) {
           	year = '-' + year;
           }
-          // @TODO Display the date in the way Wikibase does, with the month in the language of the user.
-          var monthNum = dateObj.getUTCMonth() + 1;
-          var dayNum = dateObj.getUTCDate();
-          return (
-            year + "-" +
-            ("0" + monthNum).slice(-2) + "-" +
-            ("0" + dayNum).slice(-2)
-          );
+          let monthNum = dateObj.getUTCMonth() + 1;
+          let monthNames = mw.config.get("wgMonthNames");
+          let dayNum = dateObj.getUTCDate();
+          return dayNum + ' ' + monthNames[monthNum] + ' ' + year;
+        } else if (precision == 10) {
+          // JS date parsing won't work on a date that looks like "YYYY-MM-00",
+          // so instead just get the digits manually.
+          let matches = timeString.match(/(\d+)-(\d+)/);
+          // Remove trailing zeros, if it's a less-than-four-digit year.
+          let year = matches[1].replace(/^0+/,"");
+          if (isBC) {
+          	year = '-' + year;
+          }
+          let monthNum = parseInt(matches[2]);
+          let monthNames = mw.config.get("wgMonthNames");
+          return monthNames[monthNum] + ' ' + year;
         } else {
           // JS date parsing won't work on a date that looks like "YYYY-00-00",
           // so instead just get the first group of digits.
-          var matches = timeString.match(/(\d+)/);
+          let matches = timeString.match(/(\d+)/);
           // Remove trailing zeros, if it's a less-than-four-digit year.
-          var year = matches[0].replace(/^0+/,"");
+          let year = matches[0].replace(/^0+/,"");
           if (isBC) {
           	// @TODO - it would be good to instead display "BCE" here, or its equivalent in other
           	// languages, but that requires access to the i18n message "wikibase-time-precision-BCE",
