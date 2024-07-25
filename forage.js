@@ -694,7 +694,8 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
               text: ''
             },
             publishMsg: "✔ " + mw.msg('wikibase-publish'),
-            cancelMsg: "✘ " + mw.msg('wikibase-cancel')
+            cancelMsg: "✘ " + mw.msg('wikibase-cancel'),
+            unitMsg: mw.msg('valueview-expertextender-unitsuggester-label')
           };
         },
         template: `
@@ -739,10 +740,22 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
                     v-if="(properties[propID].datatype === 'commonsMedia' || properties[propID].datatype === 'string') && !(statement.references || statement.qualifiers) && (statement.mainsnak.snaktype !== 'novalue')"
                     v-model="statement.mainsnak.datavalue.value"
                   ></cdx-text-input>
-                  <cdx-text-input
-                    v-if="properties[propID].datatype === 'quantity' && !(statement.references || statement.qualifiers) && (statement.mainsnak.snaktype !== 'novalue')"
-                    v-model="statement.mainsnak.datavalue.value.amount"
-                  ></cdx-text-input>
+                  <div v-if="properties[propID].datatype === 'quantity'" style="display: flex; flex-direction: row;">
+                    <cdx-text-input
+                      v-model="statement.mainsnak.datavalue.value.amount"
+                    ></cdx-text-input>
+                    <div style="padding: 5px 5px 5px 15px;">{{unitMsg}}</div>
+                    <cdx-typeahead-search
+                      placeholder="Type or choose an option"
+                      search-results-label="Search results"
+                      :search-results="autocompleteItems"
+                      :highlight-query="true"
+                      :visible-item-limit="5"
+                      @input="comboboxOnChange"
+                      @search-result-click="unitComboboxOnSelect($event, propID, idx)"
+                      @blur="resetOptions"
+                    ></cdx-typeahead-search>
+                  </div>
                   <cdx-text-input
                     v-if="properties[propID].datatype === 'time' && !(statement.references || statement.qualifiers) && (statement.mainsnak.snaktype !== 'novalue')"
                     v-model="statement.mainsnak.datavalue.value.time"
@@ -782,10 +795,22 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
                   v-if="(properties[propID].datatype === 'commonsMedia' || properties[propID].datatype === 'string') && !(statement.references || statement.qualifiers) && (statement.mainsnak.snaktype !== 'novalue')"
                   v-model="statement.mainsnak.datavalue.value"
                 ></cdx-text-input>
-                <cdx-text-input
-                  v-if="properties[propID].datatype === 'quantity' && !(statement.references || statement.qualifiers) && (statement.mainsnak.snaktype !== 'novalue')"
-                  v-model="statement.mainsnak.datavalue.value.amount"
-                ></cdx-text-input>
+                  <div v-if="properties[propID].datatype === 'quantity'" style="display: flex; flex-direction: row;">
+                    <cdx-text-input
+                      v-model="statement.mainsnak.datavalue.value.amount"
+                    ></cdx-text-input>
+                    <div style="padding: 5px 5px 5px 15px;">{{unitMsg}}</div>
+                    <cdx-typeahead-search
+                      placeholder="Type or choose an option"
+                      search-results-label="Search results"
+                      :search-results="autocompleteItems"
+                      :highlight-query="true"
+                      :visible-item-limit="5"
+                      @input="comboboxOnChange"
+                      @search-result-click="unitComboboxOnSelect($event, propID, idx)"
+                      @blur="resetOptions"
+                    ></cdx-typeahead-search>
+                  </div>
                 <cdx-text-input
                   v-if="properties[propID].datatype === 'time' && !(statement.references || statement.qualifiers) && (statement.mainsnak.snaktype !== 'novalue')"
                   v-model="statement.mainsnak.datavalue.value.time"
@@ -1101,6 +1126,10 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
               'id': selectedEntityId,
               'label': event.searchResult.label
             };
+          },
+          unitComboboxOnSelect: function (event, propID, statementIdx) {
+            const unitEntityURL = 'http://www.wikidata.org/entity/' + event.searchResult.value;
+            this.newStatementsMap[propID][statementIdx].mainsnak.datavalue.value.unit = unitEntityURL;
           },
           submitChanges: async function(event, propID, statementIdx) {
             event.target.disabled = true;
