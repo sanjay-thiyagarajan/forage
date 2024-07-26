@@ -703,7 +703,8 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
             unitMsg: mw.msg('valueview-expertextender-unitsuggester-label'),
             dayMsg: capitalizeFirst(mw.msg('valueview-expert-timeinput-precision-day')) + ':',
             monthMsg: capitalizeFirst(mw.msg('valueview-expert-timeinput-precision-month')) + ':',
-            yearMsg: capitalizeFirst(mw.msg('valueview-expert-timeinput-precision-year')) + ':'
+            yearMsg: capitalizeFirst(mw.msg('valueview-expert-timeinput-precision-year')) + ':',
+            languageMsg: mw.msg('valueview-expertextender-languageselector-label')
           };
         },
         template: `
@@ -775,6 +776,12 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
                     &nbsp;
                     {{yearMsg}}
                     <input type="text" class="yearInput" size="4" style="padding: 6px 8px;">
+                  </div>
+                  <div v-if="properties[propID].datatype === 'monolingualtext'">
+                    <input type="text" class="textInput" size="30" style="padding: 6px 8px;">
+                    &nbsp;
+                    {{languageMsg}}
+                    <input type="text" class="langInput" size="1" style="padding: 6px 8px;">
                   </div>
                   <cdx-button action="progressive" weight="quiet" @click="submitChanges($event, propID, idx)">{{publishMsg}}</cdx-button>
                   <cdx-button v-if="!(statement.references || statement.qualifiers) && (statement.mainsnak.snaktype !== 'novalue')" action="destructive" weight="quiet" @click="deleteValue(idx, propID)">{{cancelMsg}}</cdx-button>
@@ -1106,6 +1113,10 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
                   time: "",
                 },
               };
+            } else if (propDataType === "monolingualtext") {
+              statement.mainsnak.datavalue = {
+                value: {},
+              };
             }
             if (newStatementsMap[propID]) {
               this.newStatementsMap[propID].unshift(statement);
@@ -1191,6 +1202,9 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
               dataValue.before = 0;
               dataValue.after = 0;
               dataValue.calendarmodel = 'http://www.wikidata.org/entity/Q1985727';
+            } else if (dataType == 'monolingualtext') {
+              dataValue.text = $(event.target).parent().find('.textInput').val();
+              dataValue.language = $(event.target).parent().find('.langInput').val();
             }
             const dataLabel = dataValue.label ? dataValue.label : null;
             const dataID = dataValue.id ? dataValue.id : null;
