@@ -662,6 +662,10 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
         });
       }
 
+      function capitalizeFirst(str) {
+      	return str.charAt(0).toUpperCase() + str.slice(1);
+      }
+
       Vue.createMwApp({
         data: function () {
           return {
@@ -693,9 +697,13 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
               state: 'success',
               text: ''
             },
+            monthNames: mw.config.get('wgMonthNames'),
             publishMsg: "✔ " + mw.msg('wikibase-publish'),
             cancelMsg: "✘ " + mw.msg('wikibase-cancel'),
-            unitMsg: mw.msg('valueview-expertextender-unitsuggester-label')
+            unitMsg: mw.msg('valueview-expertextender-unitsuggester-label'),
+            dayMsg: capitalizeFirst(mw.msg('valueview-expert-timeinput-precision-day')) + ':',
+            monthMsg: capitalizeFirst(mw.msg('valueview-expert-timeinput-precision-month')) + ':',
+            yearMsg: capitalizeFirst(mw.msg('valueview-expert-timeinput-precision-year')) + ':'
           };
         },
         template: `
@@ -756,11 +764,18 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
                       @blur="resetOptions"
                     ></cdx-typeahead-search>
                   </div>
-                  <cdx-text-input
-                    v-if="properties[propID].datatype === 'time' && !(statement.references || statement.qualifiers) && (statement.mainsnak.snaktype !== 'novalue')"
-                    v-model="statement.mainsnak.datavalue.value.time"
-                    input-type="datetime-local"
-                  ></cdx-text-input>
+                  <div v-if="properties[propID].datatype === 'time'">
+                    {{dayMsg}}
+                    <input type="text" class="dayInput" size="1" style="padding: 6px 8px;">
+                    &nbsp;
+                    {{monthMsg}}
+                    <select class="monthInput" style="padding: 6px 8px;">
+                      <option v-for="(monthName, monthNum) in monthNames" :value="monthNum">{{monthName}}</option>
+                    </select>
+                    &nbsp;
+                    {{yearMsg}}
+                    <input type="text" class="yearInput" size="4" style="padding: 6px 8px;">
+                  </div>
                   <cdx-button action="progressive" weight="quiet" @click="submitChanges($event, propID, idx)">{{publishMsg}}</cdx-button>
                   <cdx-button v-if="!(statement.references || statement.qualifiers) && (statement.mainsnak.snaktype !== 'novalue')" action="destructive" weight="quiet" @click="deleteValue(idx, propID)">{{cancelMsg}}</cdx-button>
                 </div>
@@ -811,11 +826,18 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
                       @blur="resetOptions"
                     ></cdx-typeahead-search>
                   </div>
-                <cdx-text-input
-                  v-if="properties[propID].datatype === 'time' && !(statement.references || statement.qualifiers) && (statement.mainsnak.snaktype !== 'novalue')"
-                  v-model="statement.mainsnak.datavalue.value.time"
-                  input-type="datetime-local"
-                ></cdx-text-input>
+                  <div v-if="properties[propID].datatype === 'time'">
+                    {{dayMsg}}
+                    <input type="text" class="dayInput" size="1" style="padding: 6px 8px;">
+                    &nbsp;
+                    {{monthMsg}}
+                    <select class="monthInput" style="padding: 6px 8px;">
+                      <option v-for="(monthName, monthNum) in monthNames" :value="monthNum">{{monthName}}</option>
+                    </select>
+                    &nbsp;
+                    {{yearMsg}}
+                    <input type="text" class="yearInput" size="4" style="padding: 6px 8px;">
+                  </div>
                 <cdx-button action="progressive" weight="quiet" @click="submitChanges($event, propID, idx)">{{publishMsg}}</cdx-button>
                 <cdx-button v-if="!(statement.references || statement.qualifiers) && (statement.mainsnak.snaktype !== 'novalue')" action="destructive" weight="quiet" @click="deleteValue(idx, propID)">{{cancelMsg}}</cdx-button>
               </div>
@@ -1143,6 +1165,33 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
             };
             const tokenResponse = await api.get(requestParams);
             let dataValue = Vue.toRaw(this.newStatementsMap[propID][statementIdx].mainsnak.datavalue.value);
+            let dataType = this.newStatementsMap[propID][statementIdx].mainsnak.datatype;
+            if (dataType == 'time') {
+              let yearVal = $(event.target).parent().find('.yearInput').val();
+              // Add a "+" at the beginning (needed for saving) if the year starts
+              // with a digit (as opposed to "-", or anything else).
+              if (! isNaN(parseInt(yearVal.charAt(0)))) {
+              	yearVal = '+' + yearVal;
+              }
+              dataValue.precision = 9;
+              let monthVal = $(event.target).parent().find('.monthInput').val();
+              if (monthVal > 0) dataValue.precision = 10;
+              if (monthVal.length < 2) monthVal = '0' + monthVal;
+              let dayVal = $(event.target).parent().find('.dayInput').val();
+              if (dayVal == '') {
+              	dayVal = '00';
+              } else {
+              	dataValue.precision = 11;
+              }
+              if (dayVal.length < 2) dayVal = '0' + dayVal;
+              dataValue.time = yearVal + '-' + monthVal + '-' + dayVal + 'T00:00:00Z';
+              // All of the following are needed for saving - hopefully the calendar model
+              // (Gregorian) is accurate.
+              dataValue.timezone = 0;
+              dataValue.before = 0;
+              dataValue.after = 0;
+              dataValue.calendarmodel = 'http://www.wikidata.org/entity/Q1985727';
+            }
             const dataLabel = dataValue.label ? dataValue.label : null;
             const dataID = dataValue.id ? dataValue.id : null;
             requestParams = {
