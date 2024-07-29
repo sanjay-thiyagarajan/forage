@@ -785,6 +785,13 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
                     {{languageMsg}}
                     <input type="text" class="langInput" size="1" style="padding: 6px 8px;">
                   </div>
+                  <div v-if="properties[propID].datatype === 'globe-coordinate'">
+                    Latitude:
+                    <input type="text" class="latInput" size="20" style="padding: 6px 8px;">
+                    &nbsp;
+                    Longitude:
+                    <input type="text" class="lonInput" size="20" style="padding: 6px 8px;">
+                  </div>
                   <cdx-button action="progressive" weight="quiet" @click="submitChanges($event, propID, idx)">{{publishMsg}}</cdx-button>
                   <cdx-button v-if="!(statement.references || statement.qualifiers) && (statement.mainsnak.snaktype !== 'novalue')" action="destructive" weight="quiet" @click="deleteValue(idx, propID)">{{cancelMsg}}</cdx-button>
                 </div>
@@ -887,7 +894,7 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
 		  &nbsp;
                   <cdx-button @click="addNewValue(propID)">+</cdx-button>
                 </template>
-                <div style="width: max-content;" v-for="(statement, idx) in newStatementsMap[propID]" :key="idx" :style="valueInputStyle">
+                <div style="width: max-content;" v-for="(statement, idx) in newStatementsMap[propID]" :key="idx" s:style="valueInputStyle">
                   <cdx-text-input
                     v-if="statement.mainsnak.snaktype !== 'novalue'"
                     v-model="statement.mainsnak.datavalue.value"
@@ -1119,6 +1126,13 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
               statement.mainsnak.datavalue = {
                 value: {},
               };
+            } else if (propDataType === "globe-coordinate") {
+              statement.mainsnak.datavalue = {
+                value: {
+                  latitude: "",
+                  longitude: "",
+                },
+              };
             }
             if (newStatementsMap[propID]) {
               this.newStatementsMap[propID].unshift(statement);
@@ -1207,6 +1221,14 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
             } else if (dataType == 'monolingualtext') {
               dataValue.text = $(event.target).parent().find('.textInput').val();
               dataValue.language = $(event.target).parent().find('.langInput').val();
+            } else if (dataType == 'globe-coordinate') {
+              dataValue.latitude = $(event.target).parent().find('.latInput').val();
+              dataValue.longitude = $(event.target).parent().find('.lonInput').val();
+              // Needed for saving.
+              dataValue.altitude = null;
+              dataValue.globe = "http://www.wikidata.org/entity/Q2";
+              // @TODO - set this based on the numbers entered.
+              dataValue.precision = 1e-8;
             }
             const dataLabel = dataValue.label ? dataValue.label : null;
             const dataID = dataValue.id ? dataValue.id : null;
