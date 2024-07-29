@@ -676,6 +676,8 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
               "font-size: 14px; border: 1px solid #aaa; width: 80%; padding: 0 1rem 1rem 1rem; margin-top: 1rem; background: #f5f5f5;",
             classHeaderStyle: "font-size: 15px;font-weight: bold;",
             qualifierLabelStyle: "font-size: 12px; text-decoration: italic;",
+            valueInputStyle:
+              "display: flex; flex-direction: row; margin: 5px 0 10px 0;",
             valueTagStyle:
               "display: inline-block; font-size: 13px; padding: 3px 10px; border: 1px solid #999; background: lightyellow; border-radius: 10px; margin: 0 8px 6px 0;",
             classIDs: [],
@@ -730,7 +732,7 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
 		  &nbsp;
                   <cdx-button @click="addNewValue(propID)">+</cdx-button>
                 </template>
-                <div style="width: max-content;" v-for="(statement, idx) in newStatementsMap[propID]" :key="idx" style="display: flex; flex-direction: row;">
+                <div style="width: max-content;" v-for="(statement, idx) in newStatementsMap[propID]" :key="idx" :style="valueInputStyle">
                   <cdx-typeahead-search
                     id="'typeahead-search-' + idx"
                     v-if="properties[propID].datatype === 'wikibase-item' && !(statement.references || statement.qualifiers) && (statement.mainsnak.snaktype !== 'novalue')"
@@ -749,7 +751,7 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
                     v-if="(properties[propID].datatype === 'commonsMedia' || properties[propID].datatype === 'string') && !(statement.references || statement.qualifiers) && (statement.mainsnak.snaktype !== 'novalue')"
                     v-model="statement.mainsnak.datavalue.value"
                   ></cdx-text-input>
-                  <div v-if="properties[propID].datatype === 'quantity'" style="display: flex; flex-direction: row;">
+                  <div v-if="properties[propID].datatype === 'quantity'" :style="valueInputStyle">
                     <cdx-text-input
                       v-model="statement.mainsnak.datavalue.value.amount"
                     ></cdx-text-input>
@@ -798,7 +800,7 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
 		&nbsp;
                 <cdx-button @click="addNewValue(propID)">+</cdx-button>
               </template>
-              <div style="width: max-content;" v-for="(statement, idx) in newStatementsMap[propID]" :key="idx" style="display: flex; flex-direction: row;">
+              <div style="width: max-content;" v-for="(statement, idx) in newStatementsMap[propID]" :key="idx" :style="valueInputStyle">
                 <cdx-typeahead-search
                   id="'typeahead-search-' + idx"
                   v-if="properties[propID].datatype === 'wikibase-item' && !(statement.references || statement.qualifiers) && (statement.mainsnak.snaktype !== 'novalue')"
@@ -817,7 +819,7 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
                   v-if="(properties[propID].datatype === 'commonsMedia' || properties[propID].datatype === 'string') && !(statement.references || statement.qualifiers) && (statement.mainsnak.snaktype !== 'novalue')"
                   v-model="statement.mainsnak.datavalue.value"
                 ></cdx-text-input>
-                  <div v-if="properties[propID].datatype === 'quantity'" style="display: flex; flex-direction: row;">
+                  <div v-if="properties[propID].datatype === 'quantity'" :style="valueInputStyle">
                     <cdx-text-input
                       v-model="statement.mainsnak.datavalue.value.amount"
                     ></cdx-text-input>
@@ -863,7 +865,7 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
 		     &nbsp;
                     <cdx-button @click="addNewValue(propID)">+</cdx-button>
                   </template>
-                  <div style="width: max-content;" v-for="(statement, idx) in newStatementsMap[propID]" :key="idx" style="display: flex; flex-direction: row;">
+                  <div style="width: max-content;" v-for="(statement, idx) in newStatementsMap[propID]" :key="idx" :style="valueInputStyle">
                     <cdx-text-input
                       v-if="statement.mainsnak.snaktype !== 'novalue'"
                       v-model="statement.mainsnak.datavalue.value"
@@ -885,7 +887,7 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
 		  &nbsp;
                   <cdx-button @click="addNewValue(propID)">+</cdx-button>
                 </template>
-                <div style="width: max-content;" v-for="(statement, idx) in newStatementsMap[propID]" :key="idx" style="display: flex; flex-direction: row;">
+                <div style="width: max-content;" v-for="(statement, idx) in newStatementsMap[propID]" :key="idx" :style="valueInputStyle">
                   <cdx-text-input
                     v-if="statement.mainsnak.snaktype !== 'novalue'"
                     v-model="statement.mainsnak.datavalue.value"
