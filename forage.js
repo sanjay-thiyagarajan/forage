@@ -894,7 +894,7 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
 		  &nbsp;
                   <cdx-button @click="addNewValue(propID)">+</cdx-button>
                 </template>
-                <div style="width: max-content;" v-for="(statement, idx) in newStatementsMap[propID]" :key="idx" s:style="valueInputStyle">
+                <div style="width: max-content;" v-for="(statement, idx) in newStatementsMap[propID]" :key="idx" :style="valueInputStyle">
                   <cdx-text-input
                     v-if="statement.mainsnak.snaktype !== 'novalue'"
                     v-model="statement.mainsnak.datavalue.value"
