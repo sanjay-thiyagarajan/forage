@@ -1114,6 +1114,7 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
               statement.mainsnak.datavalue = {
                 value: {
                   amount: "",
+                  unit: "1",
                 },
               };
             } else if (propDataType === "time") {
