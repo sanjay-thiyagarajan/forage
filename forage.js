@@ -1,3 +1,15 @@
+/**
+ * Forage - JavaScript script that provides a user-friendly interface for adding data in Wikidata
+ * or (with some modifications) any other Wikibase instance.
+ *
+ * Development of this tool is done at https://github.com/sanjay-thiyagarajan/forage
+ *
+ * @author Sanjay Thiyagaran
+ * @author Naresh Kumar
+ * @author Yaron Koren
+ * @license MIT
+ */ 
+
 messages = {
   en: {
     "menu-title": "Add property values",
