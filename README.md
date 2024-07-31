@@ -1,5 +1,7 @@
 # Forage
 
+## Overview
+
 The standard Wikidata/Wikibase editing interface is comprehensive, but not that user-friendly. When looking at a page, it is difficult to know any of the following:
 - Which information that would be expected for this type of entity is missing
 - The right property to use for each such piece of information (for example, "country" vs. "country of origin")
@@ -19,6 +21,10 @@ importScript('User:Techwizzie/forage.js');
 ## Authors
 
 Forage was created by Sanjay Thiyagarajan, Naresh Kumar and Yaron Koren, based on a design by Yaron.
+
+## License
+
+Forage is open-source software that uses the [MIT license](https://opensource.org/license/mit).
 
 ## Usage
 
