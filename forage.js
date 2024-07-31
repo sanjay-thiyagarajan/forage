@@ -15,7 +15,7 @@ messages = {
     "menu-title": "Add property values",
     "fields-for-class-title": "Fields for class",
     "other-fields-title": "Other fields",
-    "external-ids-title": "External ID(s)",
+    "external-ids-title": "External IDs",
     "ids-for-class-title": "IDs for class",
     "other-ids-title": "Other IDs",
   },
