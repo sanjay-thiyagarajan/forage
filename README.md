@@ -18,9 +18,9 @@ To install Forage, just add the following line to the common.js subpage under yo
 importScript('User:Techwizzie/forage.js');
 ```
 
-## Authors
+## Credits
 
-Forage was created by Sanjay Thiyagarajan, Naresh Kumar and Yaron Koren, based on a design by Yaron.
+Forage was created by [Sanjay Thiyagarajan](https://github.com/sanjay-thiyagarajan), [Naresh Kumar Babu](https://github.com/naresh-kumar-babu) and [Yaron Koren](https://github.com/yaronkoren), based on a design by Yaron. Thanks also to [Laurence Parry](https://github.com/greenreaper) for providing helpful initial feedback.
 
 ## License
 
