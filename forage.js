@@ -726,12 +726,12 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
           <cdx-progress-bar style="margin-top: 30px; width: 80%" v-if="progress" aria--label="ProgressBar"></cdx-progress-bar>
           <cdx-message
             v-if="message.show"
-            type="message.state"
+            :type="message.state"
             dismiss-button-label="Close"
             :fade-in="true"
             :auto-dismiss="true"
             :display-time="3000"
-            style="position: fixed; right: 2%;"
+            style="position: fixed; right: 2%; width: 70%;"
           >
             {{message.text}}
           </cdx-message>
