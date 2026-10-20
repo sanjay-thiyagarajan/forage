@@ -18,6 +18,9 @@ messages = {
     "external-ids-title": "External IDs",
     "ids-for-class-title": "IDs for class",
     "other-ids-title": "Other IDs",
+    "completeness-count": "$1 of $2 filled",
+    "show-only-empty": "Show only empty properties",
+    "all-filled": "All expected properties for this class have values.",
   },
 };
 
@@ -27,7 +30,7 @@ if (lang && lang != "en" && lang in messages) {
   mw.messages.set(messages[lang]);
 }
 
-mw.loader.using(["@wikimedia/codex", "mediawiki.util"]).then(function (require) {
+mw.loader.using(["@wikimedia/codex", "mediawiki.util", "mediawiki.storage"]).then(function (require) {
   const Vue = require("vue");
   const Codex = require("@wikimedia/codex");
   const instanceOfItemID = "P31";
@@ -703,6 +706,7 @@ mw.loader.using(["@wikimedia/codex", "mediawiki.util"]).then(function (require) 
             externalIDDivStyle:
               "font-size: 14px; border: 1px solid #aaa; width: 80%; padding: 0 1rem 1rem 1rem; margin-top: 1rem; background: #f5f5f5;",
             classHeaderStyle: "font-size: 15px;font-weight: bold;",
+            completenessStyle: "font-size: 14px; font-weight: normal; color: #54595d; margin-left: 0.5em;",
             qualifierLabelStyle: "font-size: 12px; text-decoration: italic;",
             valueInputStyle:
               "display: flex; flex-direction: row; margin: 5px 0 10px 0;",
@@ -718,6 +722,8 @@ mw.loader.using(["@wikimedia/codex", "mediawiki.util"]).then(function (require) 
             autocompleteItems: [],
             existingValueLabels: {},
             newStatementsMap: {},
+            showOnlyEmpty: mw.storage.get("forage-show-only-empty") === "1",
+            touchedProps: {},
             mw,
             allPropIDLabelsMap,
             deleteValue,
@@ -751,10 +757,14 @@ mw.loader.using(["@wikimedia/codex", "mediawiki.util"]).then(function (require) 
           >
             {{message.text}}
           </cdx-message>
+          <cdx-toggle-switch v-if="!progress" v-model="showOnlyEmpty" style="margin-top: 1rem;">{{mw.msg('show-only-empty')}}</cdx-toggle-switch>
           <template v-if="!progress" v-for="classID in classIDs">
             <div v-if="classPropertiesMap[classID]['general'].length > 0" :style="classDivStyle">
-              <h2>{{mw.msg('fields-for-class-title')}} <a :href=getWikibaseURL(classID) target="_blank">{{classLabels[classID]}}</a></h2>
-              <cdx-field style="max-width: max-content;" v-for="propID in classPropertiesMap[classID]['generalSorted']">
+              <h2>{{mw.msg('fields-for-class-title')}} <a :href=getWikibaseURL(classID) target="_blank">{{classLabels[classID]}}</a>
+                <span :style="completenessStyle">{{completenessText(classPropertiesMap[classID]['generalSorted'])}}</span>
+              </h2>
+              <p v-if="visibleProps(classPropertiesMap[classID]['generalSorted']).length === 0">{{mw.msg('all-filled')}}</p>
+              <cdx-field style="max-width: max-content;" v-for="propID in visibleProps(classPropertiesMap[classID]['generalSorted'])">
                 <template #label>
                   <a :href=getWikibasePropertyURL(propID) target="_blank">{{properties[propID].label}}</a>
 		  &nbsp;
@@ -893,8 +903,11 @@ mw.loader.using(["@wikimedia/codex", "mediawiki.util"]).then(function (require) 
             <template #title>{{mw.msg('external-ids-title')}}</template>
             <template v-if="!progress" v-for="classID in classIDs">
             <div :style="externalIDDivStyle" v-if="classPropertiesMap[classID]['external'].length > 0">
-              <h2>{{mw.msg('ids-for-class-title')}} <a :href=getWikibaseURL(classID) target="_blank">{{classLabels[classID]}}</a></h2>
-                <cdx-field style="width: max-content;" v-for="propID in classPropertiesMap[classID]['externalSorted']">
+              <h2>{{mw.msg('ids-for-class-title')}} <a :href=getWikibaseURL(classID) target="_blank">{{classLabels[classID]}}</a>
+                <span :style="completenessStyle">{{completenessText(classPropertiesMap[classID]['externalSorted'])}}</span>
+              </h2>
+                <p v-if="visibleProps(classPropertiesMap[classID]['externalSorted']).length === 0">{{mw.msg('all-filled')}}</p>
+                <cdx-field style="width: max-content;" v-for="propID in visibleProps(classPropertiesMap[classID]['externalSorted'])">
                   <template #label>
                      <a :href=getWikibasePropertyURL(propID) target="_blank">{{properties[propID].label}}</a>
 		     &nbsp;
@@ -1103,6 +1116,11 @@ mw.loader.using(["@wikimedia/codex", "mediawiki.util"]).then(function (require) 
         updated() {
           replaceUnitIDsWithLabels();
         },
+        watch: {
+          showOnlyEmpty: function (value) {
+            mw.storage.set("forage-show-only-empty", value ? "1" : "0");
+          },
+        },
         methods: {
           getWikibaseURL: function (id) {
             var wbrepo = mw.config.get("wbRepo");
@@ -1111,7 +1129,27 @@ mw.loader.using(["@wikimedia/codex", "mediawiki.util"]).then(function (require) 
           getWikibasePropertyURL: function (propID) {
             return this.getWikibaseURL("Property:" + propID)
 	  },
+          hasValues: function (propID) {
+            return this.statementsMap[propID] !== undefined && this.statementsMap[propID].length > 0;
+          },
+          completenessText: function (propIDs) {
+            const numFilled = propIDs.filter(this.hasValues).length;
+            return mw.msg("completeness-count", numFilled, propIDs.length);
+          },
+          // If "show only empty" is on, hide properties that already have values -
+          // unless the user has added a value for that property on this page, so
+          // that it doesn't disappear right after being saved.
+          visibleProps: function (propIDs) {
+            if (!this.showOnlyEmpty) {
+              return propIDs;
+            }
+            const that = this;
+            return propIDs.filter(function (propID) {
+              return !that.hasValues(propID) || that.touchedProps[propID];
+            });
+          },
           addNewValue: function (propID) {
+            this.touchedProps[propID] = true;
             const propDataType = propertyDatatypeMap[propID];
             var statement = {
               mainsnak: {
@@ -1319,6 +1357,7 @@ mw.loader.using(["@wikimedia/codex", "mediawiki.util"]).then(function (require) 
         .component("cdx-text-input", Codex.CdxTextInput)
         .component("cdx-accordion", Codex.CdxAccordion)
         .component("cdx-message", Codex.CdxMessage)
+        .component("cdx-toggle-switch", Codex.CdxToggleSwitch)
         .mount("#mw-content-text");
     }
   }
