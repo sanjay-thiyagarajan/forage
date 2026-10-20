@@ -1220,7 +1220,24 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
               meta: "tokens",
               format: "json"
             };
-            const tokenResponse = await api.get(requestParams);
+            const that = this;
+            // mw.Api rejects its promise on API errors - convert the rejection
+            // into a regular response, so that the error can be displayed.
+            function toErrorResponse(code, result) {
+              return (result && result.error) ? result : { error: { code: code } };
+            }
+            function showError(error) {
+              console.error(error.code);
+              that.message.state = 'error';
+              that.message.text = 'Error saving the new claim: ' + (error.info || error.code);
+              that.message.show = true;
+              event.target.disabled = false;
+            }
+            const tokenResponse = await api.get(requestParams).catch(toErrorResponse);
+            if (tokenResponse.error) {
+              showError(tokenResponse.error);
+              return;
+            }
             let dataValue = Vue.toRaw(this.newStatementsMap[propID][statementIdx].mainsnak.datavalue.value);
             let dataType = this.newStatementsMap[propID][statementIdx].mainsnak.datatype;
             if (dataType == 'time') {
@@ -1271,7 +1288,7 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
               value: JSON.stringify(dataValue),
               token: tokenResponse.query.tokens.csrftoken
             };
-            const response = await api.post(requestParams);
+            const response = await api.post(requestParams).catch(toErrorResponse);
             event.target.disabled = false;
             if(response.success){
               if(dataLabel !== null && dataID !== null){
@@ -1287,10 +1304,7 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
               this.message.text = 'Successfully added the new claim';
               this.message.show = true;
             } else if(response.error){
-              console.error(resonse.error.code);
-              this.message.state = 'error';
-              this.message.text = 'Error saving the new claim: ' + response.error.code;
-              this.message.show = true;
+              showError(response.error);
             }
           }
         },
