@@ -27,7 +27,7 @@ if (lang && lang != "en" && lang in messages) {
   mw.messages.set(messages[lang]);
 }
 
-mw.loader.using("@wikimedia/codex").then(function (require) {
+mw.loader.using(["@wikimedia/codex", "mediawiki.util"]).then(function (require) {
   const Vue = require("vue");
   const Codex = require("@wikimedia/codex");
   const instanceOfItemID = "P31";
@@ -50,32 +50,31 @@ mw.loader.using("@wikimedia/codex").then(function (require) {
   var propertyDatatypeMap = {};
   var classIDList = [];
   var allUnitIDs = new Set();
-  var menuList = $("#right-navigation").find(".vector-menu-content-list");
-  var editEntityDiv = $("<li>").attr({
-    id: "ca-edit-entity",
-    class: "vector-tab-noicon mw-list-item",
-  });
-
-  var editFieldSpan = $("<span>").text(mw.msg("menu-title"));
-  var anchor = $("<a>").append(editFieldSpan);
-  anchor.on("click", function () {
+  if (mw.config.get("wgPageContentModel") === "wikibase-item") {
     var wbrepo = mw.config.get("wbRepo");
-    window.location.href =
+    var tabURL =
       wbrepo.url +
       wbrepo.articlePath.replace("$1", mw.config.get("wgTitle")) +
       "?addpropvalues";
-  });
-
-  if (mw.config.get("wgPageContentModel") === "wikibase-item") {
-    editEntityDiv.append(anchor);
-    menuList.append(editEntityDiv);
+    // Not every skin has the same portlets - "p-views" holds the page tabs
+    // in Vector, MonoBook and Timeless; fall back to the others if needed.
+    var tabItem = null;
+    ["p-views", "p-cactions", "p-tb"].some(function (portletID) {
+      tabItem = mw.util.addPortletLink(
+        portletID,
+        tabURL,
+        mw.msg("menu-title"),
+        "ca-edit-entity"
+      );
+      return tabItem !== null;
+    });
     const queryString = window.location.search;
     if (queryString.includes("?addpropvalues")) {
       // Active tab switching
-      menuList.find("li").each(function () {
-        $(this).removeClass("selected");
-      });
-      $("#ca-edit-entity").addClass("selected");
+      if (tabItem) {
+        $(tabItem).siblings().removeClass("selected");
+        $(tabItem).addClass("selected");
+      }
 
       // Function to retrieve parent classes, via the "instance of" property
       function getParentClassIDs(entity) {
